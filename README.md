@@ -16,10 +16,35 @@ with a live preview, several palettes, dithering and a runnable `.prg` output.
 | Dithering | None, Floyd-Steinberg, Atkinson, Jarvis-Judice-Ninke, Stucki, Sierra Lite, Bayer 2×2/4×4/8×8. Strength, serpentine, and **bleeding on/off** (off = diffused error never leaves its cell). |
 | Quality | Multiple passes: colour selection is repeated on the values the ditherer wanted; the best pass wins. Error map view. |
 | Live preview | The result updates automatically (debounced) whenever a setting changes; *Convert* then only writes the files. Can be switched off. Every settings group has a *Defaults* button. Sliders have ◀/▶ step buttons (hold to repeat), a ▲ mark at the default value, snap to the default while dragging, and reset on double click. |
-| Languages | English and German user interface, switchable under *Language* without restart (stored in the user preferences; English by default). Swing's own dialogs follow the chosen language. Texts live in `src/main/resources/de/flipperj/i18n/messages*.properties` – another language is just another file. |
+| Languages | English, German, Polish, Swedish and Dutch. By default the UI follows the operating system language (English if it is not supported); a language chosen under *Language* or in the settings is remembered. Swing's own dialogs follow the chosen language. Texts live in `src/main/resources/de/flipperj/i18n/messages*.properties` – another language is just another file. |
+| Settings | *File ▸ Settings…* (macOS: *FlipperJ ▸ Settings…*, ⌘,): language, live preview, pixel grid, linked previews, PAL aspect, default outputs and output folder. Stored in the Java user preferences. |
+| macOS | Menu bar at the top of the screen, About / Settings / Quit in the application menu, ⌘ shortcuts, native Finder file dialogs, title bar follows light/dark mode. |
 | Reframe in preview | Right click on the original preview (or *File ▸ Reframe in preview*) shows the whole source picture with the 320×200 frame: mouse wheel resizes, left drag moves, right click / Enter applies, Esc cancels. The result preview updates live. |
 | Previews | Zoom with the mouse wheel (around the cursor), pan with the right mouse button, double click to fit. Buttons for zoom in/out, fit, 4× and panning. Both previews can be linked; pixel and 8×8 cell grid when zoomed in. |
 | Output | Runnable `.prg` with displayer (`LOAD"PIC",8` + `RUN`, or `SYS 2061`) and/or raw data, each switchable by checkbox. |
+
+## Downloads (releases)
+
+Ready-to-run packages are built by GitHub Actions (`.github/workflows/release.yml`) and attached to each release:
+
+| File | System | Start |
+|---|---|---|
+| `FlipperJ-<version>-macos-arm64.dmg` / `-macos-x64.dmg` | macOS (Apple Silicon / Intel), Java included | open the .dmg, drag FlipperJ to *Applications* |
+| `FlipperJ-<version>-windows-x64.msi` | Windows, Java included | install, start from the Start menu |
+| `FlipperJ-<version>-windows-x64-portable.zip` | Windows, Java included, no installation | unzip, run `FlipperJ\FlipperJ.exe` |
+| `FlipperJ-<version>-linux-x64.deb` | Debian/Ubuntu, Java included | `sudo apt install ./FlipperJ-…deb`, then *FlipperJ* in the menu |
+| `FlipperJ-<version>-linux-x64-portable.tar.gz` | any Linux, Java included | unpack, run `FlipperJ/bin/FlipperJ` |
+| `FlipperJ-<version>-all-platforms-java17.zip` | any system with Java 17+ | unzip, run `bin/flipperj` (Linux/macOS) or `bin\flipperj.bat` (Windows) |
+
+**Making a release:** create a tag `vX.Y.Z` (e.g. `v1.0.0`; the first number must be at least 1 because of macOS)
+– in IntelliJ via *Git ▸ New Tag…* and *Push* with *Push Tags*, or on GitHub via *Releases ▸ Draft a new release*.
+The workflow builds everything in about 10 minutes and attaches the files to the release.
+A test build without release: *Actions ▸ Build & Release ▸ Run workflow* (files under the run's *Artifacts*).
+
+The macOS app is not signed (that needs a paid Apple Developer ID). On first start: right-click the app ▸ *Open* ▸ *Open*.
+
+Build a package locally (on the target system): `./gradlew jpackage` (installer) or
+`./gradlew jpackage -PinstallerType=app-image` (portable folder); output in `build/jpackage`.
 
 ## Open in IntelliJ IDEA
 

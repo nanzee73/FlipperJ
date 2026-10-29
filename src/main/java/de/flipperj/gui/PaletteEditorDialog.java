@@ -7,6 +7,7 @@ import javax.swing.*;
 
 import static de.flipperj.i18n.I18n.tr;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -53,12 +54,12 @@ public class PaletteEditorDialog extends JDialog {
         buttons.add(cancel);
 
         load.addActionListener(e -> {
-            JFileChooser fc = FileDialogs.chooser("pal.loadTitle", FileDialogs.lastDir("palette"));
-            FileDialogs.addFilter(fc, "filter.palette", "vpl", "gpl", "hex", "txt");
-            if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                FileDialogs.rememberDir("palette", fc.getSelectedFile());
+            File f = FileDialogs.open(this, "pal.loadTitle", FileDialogs.lastDir("palette"),
+                    "filter.palette", "vpl", "gpl", "hex", "txt");
+            if (f != null) {
+                FileDialogs.rememberDir("palette", f);
                 try {
-                    palette = Palettes.load(fc.getSelectedFile().toPath());
+                    palette = Palettes.load(f.toPath());
                     nameField.setText(palette.name());
                     updateSwatches();
                 } catch (IOException ex) {
@@ -67,12 +68,11 @@ public class PaletteEditorDialog extends JDialog {
             }
         });
         save.addActionListener(e -> {
-            JFileChooser fc = FileDialogs.chooser("pal.saveTitle", FileDialogs.lastDir("palette"));
-            FileDialogs.addFilter(fc, "filter.vpl", "vpl");
-            if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-                FileDialogs.rememberDir("palette", fc.getSelectedFile());
-                Path p = fc.getSelectedFile().toPath();
-                if (!p.toString().toLowerCase().endsWith(".vpl")) p = Path.of(p + ".vpl");
+            File f = FileDialogs.save(this, "pal.saveTitle", FileDialogs.lastDir("palette"),
+                    nameField.getText().trim() + ".vpl", "filter.vpl", "vpl");
+            if (f != null) {
+                FileDialogs.rememberDir("palette", f);
+                Path p = f.toPath();
                 try {
                     Palettes.saveVpl(palette.renamed(nameField.getText()), p);
                 } catch (IOException ex) {

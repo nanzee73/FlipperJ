@@ -15,6 +15,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.Files;
@@ -80,6 +81,9 @@ public class MainWindow extends JFrame {
     /** Produces the current status text, so it can be re-translated after a language switch. */
     private java.util.function.Supplier<String> statusText = () -> " ";
 
+    /** Persistent user settings (options dialog). */
+    private Settings settings = Settings.load();
+
     // state
     private BufferedImage source;
     private BufferedImage fitted;
@@ -139,7 +143,7 @@ public class MainWindow extends JFrame {
         I18n.tip(leftPanel, "preview.left.tip");
         I18n.tip(rightPanel, "preview.tip");
         leftPanel.setRightClickAction(this::startReframe);
-        updateAspect();
+        applySettings();
         pack();
         setMinimumSize(new Dimension(1000, 760));
         setLocationRelativeTo(null);
@@ -154,47 +158,117 @@ public class MainWindow extends JFrame {
     // ------------------------------------------------------------------ UI construction
 
     private JMenuBar buildMenu() {
+        int mask = Platform.menuShortcutMask();
         JMenuBar bar = new JMenuBar();
         JMenu file = I18n.text(new JMenu(), "menu.file");
         JMenuItem open = I18n.text(new JMenuItem(), "menu.file.open");
+        open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, mask));
         open.addActionListener(e -> chooseInput());
         JMenuItem crop = I18n.text(new JMenuItem(), "menu.file.crop");
+        crop.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_K, mask));
         crop.addActionListener(e -> openCropDialog());
         JMenuItem reframe = I18n.text(new JMenuItem(), "menu.file.reframe");
+        reframe.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, mask));
         reframe.addActionListener(e -> startReframe());
-        JMenuItem exit = I18n.text(new JMenuItem(), "menu.file.exit");
-        exit.addActionListener(e -> dispose());
+        JMenuItem convert = I18n.text(new JMenuItem(), "bottom.convert");
+        convert.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, mask));
+        convert.addActionListener(e -> convertOrCancel());
         file.add(open);
         file.add(crop);
         file.add(reframe);
         file.addSeparator();
-        file.add(exit);
+        file.add(convert);
+        if (!Platform.IS_MAC) {
+            // on macOS, Settings and Quit live in the application menu (see App)
+            JMenuItem options = I18n.text(new JMenuItem(), "menu.file.settings");
+            options.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_COMMA, mask));
+            options.addActionListener(e -> showOptions());
+            JMenuItem exit = I18n.text(new JMenuItem(), "menu.file.exit");
+            exit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, mask));
+            exit.addActionListener(e -> dispose());
+            file.addSeparator();
+            file.add(options);
+            file.addSeparator();
+            file.add(exit);
+        }
 
         JMenu language = I18n.text(new JMenu(), "menu.language");
         ButtonGroup lg = new ButtonGroup();
+        JRadioButtonMenuItem system = new JRadioButtonMenuItem();
+        I18n.bind(() -> system.setText(tr("opt.languageSystem", I18n.nativeName(I18n.systemLocale()))));
+        system.addActionListener(e -> useSystemLanguage());
+        lg.add(system);
+        language.add(system);
+        language.addSeparator();
+        java.util.Map<Locale, JRadioButtonMenuItem> items = new java.util.HashMap<>();
         for (Locale l : I18n.SUPPORTED) {
-            String name = l.getDisplayLanguage(l);
-            JRadioButtonMenuItem item = new JRadioButtonMenuItem(
-                    name.substring(0, 1).toUpperCase(l) + name.substring(1),
-                    l.getLanguage().equals(I18n.locale().getLanguage()));
+            JRadioButtonMenuItem item = new JRadioButtonMenuItem(I18n.nativeName(l));
             item.addActionListener(e -> switchLanguage(l));
             lg.add(item);
             language.add(item);
+            items.put(l, item);
         }
+        // keep the radio selection in sync, also when the language is changed in the settings dialog
+        I18n.bind(() -> (I18n.followsSystem() ? system : items.get(I18n.locale())).setSelected(true));
 
-        JMenu help = I18n.text(new JMenu(), "menu.help");
-        JMenuItem about = I18n.text(new JMenuItem(), "menu.help.about");
-        about.addActionListener(e -> JOptionPane.showMessageDialog(this, tr("about.text", App.VERSION),
-                tr("about.title"), JOptionPane.INFORMATION_MESSAGE, aboutIcon()));
-        help.add(about);
         bar.add(file);
         bar.add(language);
-        bar.add(help);
+        if (!Platform.IS_MAC) {
+            JMenu help = I18n.text(new JMenu(), "menu.help");
+            JMenuItem about = I18n.text(new JMenuItem(), "menu.help.about");
+            about.addActionListener(e -> showAbout());
+            help.add(about);
+            bar.add(help);
+        }
         return bar;
+    }
+
+    /** About box (also used by the macOS application menu). */
+    public void showAbout() {
+        JOptionPane.showMessageDialog(this, tr("about.text", App.VERSION), tr("about.title"),
+                JOptionPane.INFORMATION_MESSAGE, aboutIcon());
+    }
+
+    /** Settings dialog (also used by the macOS application menu, ⌘,). */
+    public void showOptions() {
+        OptionsDialog d = new OptionsDialog(this, settings);
+        d.setVisible(true);
+        if (!d.isAccepted()) return;
+        settings = d.getSettings();
+        settings.save();
+        applySettings();
+        Locale l = d.getLanguage();
+        if (l == null) {
+            if (!I18n.followsSystem()) useSystemLanguage();
+        } else if (I18n.followsSystem() || !l.equals(I18n.locale())) {
+            switchLanguage(l);
+        }
+    }
+
+    /** Applies the persistent settings to the controls they preset. */
+    private void applySettings() {
+        livePreview.setSelected(settings.livePreview);
+        showGrid.setSelected(settings.pixelGrid);
+        leftPanel.setShowGrid(settings.pixelGrid);
+        rightPanel.setShowGrid(settings.pixelGrid);
+        linkViews.setSelected(settings.linkPreviews);
+        palAspect.setSelected(settings.palAspect);
+        writePrg.setSelected(settings.writePrg);
+        writeRaw.setSelected(settings.writeRaw);
+        updateAspect();
+    }
+
+    private void useSystemLanguage() {
+        I18n.useSystemLocale();
+        refreshUi();
     }
 
     private void switchLanguage(Locale l) {
         I18n.setLocale(l);
+        refreshUi();
+    }
+
+    private void refreshUi() {
         // refresh Swing's own texts and all cached sizes (combo boxes, labels)
         SwingUtilities.updateComponentTreeUI(this);
         updateAspect();
@@ -657,29 +731,29 @@ public class MainWindow extends JFrame {
     private void chooseInput() {
         File dir = FileDialogs.lastDir("input");
         if (dir == null && !inputField.getText().isBlank()) dir = new File(inputField.getText()).getParentFile();
-        JFileChooser fc = FileDialogs.chooser("dlg.open.title", dir);
-        FileDialogs.addImageFilters(fc);
-        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) loadInput(fc.getSelectedFile());
+        File f = FileDialogs.openImage(this, dir);
+        if (f != null) loadInput(f);
     }
 
     private void chooseOutput() {
         File current = outputField.getText().isBlank() ? null : new File(outputField.getText());
-        JFileChooser fc = FileDialogs.chooser("dlg.output.title", current != null ? current.getParentFile() : null);
-        FileDialogs.addFilter(fc, "filter.prg", "prg");
-        if (current != null) fc.setSelectedFile(current);
-        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            String p = fc.getSelectedFile().getPath();
-            if (!p.toLowerCase(Locale.ROOT).endsWith(".prg")) p += ".prg";
-            outputField.setText(p);
-            outputDirChosen = new File(p).getAbsoluteFile().getParentFile();
+        File f = FileDialogs.save(this, "dlg.output.title", current != null ? current.getAbsoluteFile().getParentFile() : null,
+                current != null ? current.getName() : null, "filter.prg", "prg");
+        if (f != null) {
+            outputField.setText(f.getPath());
+            outputDirChosen = f.getAbsoluteFile().getParentFile();
             FileDialogs.rememberDir("output", outputDirChosen);
         }
     }
 
-    /** Output = same name as the input picture, in the chosen output folder or next to the input. */
+    /**
+     * Output = same name as the input picture. Folder: next to the input, or (setting) the last folder
+     * chosen for output, if there is one.
+     */
     private void updateOutputPath(File input) {
         String base = input.getName().replaceFirst("\\.[^.]+$", "");
-        File dir = outputDirChosen != null ? outputDirChosen : input.getAbsoluteFile().getParentFile();
+        File last = outputDirChosen != null ? outputDirChosen : FileDialogs.lastDir("output");
+        File dir = !settings.outputNextToInput && last != null ? last : input.getAbsoluteFile().getParentFile();
         outputField.setText(new File(dir, base + ".prg").getPath());
     }
 
@@ -925,14 +999,10 @@ public class MainWindow extends JFrame {
     }
 
     private Path choosePng(String def) {
-        File dir = FileDialogs.lastDir("png");
-        JFileChooser fc = FileDialogs.chooser("dlg.savePng.title", dir);
-        FileDialogs.addFilter(fc, "filter.png", "png");
-        fc.setSelectedFile(new File(dir, def));
-        if (fc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return null;
-        FileDialogs.rememberDir("png", fc.getSelectedFile());
-        String s = fc.getSelectedFile().getPath();
-        return Path.of(s.toLowerCase(Locale.ROOT).endsWith(".png") ? s : s + ".png");
+        File f = FileDialogs.save(this, "dlg.savePng.title", FileDialogs.lastDir("png"), def, "filter.png", "png");
+        if (f == null) return null;
+        FileDialogs.rememberDir("png", f);
+        return f.toPath();
     }
 
     private void editCustomPalette(JComboBox<Palette> target) {

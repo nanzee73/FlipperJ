@@ -67,7 +67,7 @@ public class ImagePanel extends JPanel {
 
             @Override public void mouseWheelMoved(MouseWheelEvent e) {
                 if (image == null) return;
-                if (isCropMode() && !e.isControlDown()) {
+                if (isCropMode() && !e.isControlDown() && !e.isMetaDown()) {
                     resizeCrop(Math.pow(1.08, e.getPreciseWheelRotation()), e.getPoint());
                     return;
                 }

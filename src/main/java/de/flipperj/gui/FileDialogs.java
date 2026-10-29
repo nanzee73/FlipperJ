@@ -125,4 +125,59 @@ final class FileDialogs {
         sb.append(')');
         return new FileNameExtensionFilter(sb.toString(), list.toArray(new String[0]));
     }
+
+    // ------------------------------------------------------------------ high-level open / save
+
+    /** All suffixes of the installed image readers. */
+    static Set<String> imageSuffixes() {
+        Set<String> all = new TreeSet<>();
+        for (String s : ImageIO.getReaderFileSuffixes()) if (s != null && !s.isBlank()) all.add(s.toLowerCase(Locale.ROOT));
+        return all;
+    }
+
+    /** Opens a picture: Finder dialog on macOS, file chooser with image filters elsewhere. */
+    static File openImage(Component parent, File dir) {
+        if (Platform.IS_MAC) return nativeDialog(parent, "dlg.open.title", dir, null, imageSuffixes(), FileDialog.LOAD);
+        JFileChooser fc = chooser("dlg.open.title", dir);
+        addImageFilters(fc);
+        return fc.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION ? fc.getSelectedFile() : null;
+    }
+
+    /** Opens a file of the given types. */
+    static File open(Component parent, String titleKey, File dir, String filterKey, String... ext) {
+        if (Platform.IS_MAC) return nativeDialog(parent, titleKey, dir, null, Set.of(ext), FileDialog.LOAD);
+        JFileChooser fc = chooser(titleKey, dir);
+        addFilter(fc, filterKey, ext);
+        return fc.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION ? fc.getSelectedFile() : null;
+    }
+
+    /** Asks for a file to save; the extension is appended if missing. */
+    static File save(Component parent, String titleKey, File dir, String suggestedName, String filterKey, String ext) {
+        File f;
+        if (Platform.IS_MAC) {
+            f = nativeDialog(parent, titleKey, dir, suggestedName, null, FileDialog.SAVE);
+        } else {
+            JFileChooser fc = chooser(titleKey, dir);
+            addFilter(fc, filterKey, ext);
+            if (suggestedName != null) fc.setSelectedFile(new File(dir, suggestedName));
+            f = fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION ? fc.getSelectedFile() : null;
+        }
+        if (f == null) return null;
+        return f.getName().toLowerCase(Locale.ROOT).endsWith("." + ext) ? f : new File(f.getPath() + "." + ext);
+    }
+
+    /** java.awt.FileDialog = the native Finder dialog on macOS. */
+    private static File nativeDialog(Component parent, String titleKey, File dir, String name, Set<String> ext, int mode) {
+        Window w = parent instanceof Window win ? win : SwingUtilities.getWindowAncestor(parent);
+        FileDialog fd = w instanceof Dialog d ? new FileDialog(d, I18n.tr(titleKey), mode)
+                : new FileDialog(w instanceof Frame fr ? fr : null, I18n.tr(titleKey), mode);
+        if (dir != null) fd.setDirectory(dir.getPath());
+        if (name != null) fd.setFile(name);
+        if (ext != null) fd.setFilenameFilter((d, n) -> {
+            int dot = n.lastIndexOf('.');
+            return dot >= 0 && ext.contains(n.substring(dot + 1).toLowerCase(Locale.ROOT));
+        });
+        fd.setVisible(true);
+        return fd.getFile() == null ? null : new File(fd.getDirectory(), fd.getFile());
+    }
 }
