@@ -43,6 +43,10 @@ Ready-to-run packages are built by GitHub Actions (`.github/workflows/release.ym
 The workflow builds everything in about 10 minutes and attaches the files to the release.
 A test build without release: *Actions ▸ Build & Release ▸ Run workflow* (files under the run's *Artifacts*).
 
+**Development build:** every push to `main` that changes code or build files replaces the pre-release
+*Development build* (tag `latest-dev`) on the Releases page with fresh packages (`…-dev-…` in the file names).
+Changes to the README or other documents build nothing.
+
 The macOS app is not signed (that needs a paid Apple Developer ID). On first start: right-click the app ▸ *Open* ▸ *Open*.
 
 Build a package locally (on the target system): `./gradlew jpackage` (installer) or

@@ -1,6 +1,8 @@
 # Builds FlipperJ for Linux, Windows and macOS.
 #  - Push a tag like v1.0.0 (or create a release with a new tag on GitHub): all packages are built
 #    and attached to that release.
+#  - Every push to main that changes code or build files: all packages are built and the pre-release
+#    "Development build" (tag latest-dev) is replaced by them. README or other doc changes build nothing.
 #  - "Run workflow" on the Actions tab: test build, packages are available as workflow artifacts.
 #
 # File names (the same scheme as MuleJ):
@@ -13,8 +15,24 @@ name: Build & Release
 
 on:
   push:
-    tags: ['v*']
+    tags: ['v*']                 # path filters below are not applied to tags
+    branches: [main]
+    paths:                       # only code and build changes make a new development build
+      - 'src/**'
+      - 'packaging/**'
+      - 'gradle/**'
+      - 'gradlew*'
+      - '*.gradle.kts'
+      - 'gradle.properties'
+      - 'LICENSE'
+      - 'THIRD-PARTY-NOTICES.md'
+      - '.github/workflows/release.yml'
   workflow_dispatch:
+
+# a newer push to main cancels a development build that is still running
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
 
 permissions:
   contents: write
@@ -58,6 +76,8 @@ jobs:
         run: |
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then V="${GITHUB_REF_NAME#v}"; else V="1.0.0"; fi
           echo "APP_VERSION=$V" >> "$GITHUB_ENV"
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then F="$V"; else F="dev"; fi
+          echo "FILE_VERSION=$F" >> "$GITHUB_ENV"       # in file names: version of the tag, otherwise "dev"
           echo "Building version $V"
 
       - name: WiX Toolset (needed for the Windows installer)
@@ -80,8 +100,8 @@ jobs:
             exit 1
           fi
           mkdir -p dist-all
-          cp build/distributions/flipperj-$APP_VERSION.zip dist-all/FlipperJ-$APP_VERSION-all-platforms-java17.zip
-          cp build/libs/flipperj-$APP_VERSION-all.jar dist-all/FlipperJ-$APP_VERSION-all-platforms-java17.jar
+          cp build/distributions/flipperj-$APP_VERSION.zip dist-all/FlipperJ-$FILE_VERSION-all-platforms-java17.zip
+          cp build/libs/flipperj-$APP_VERSION-all.jar dist-all/FlipperJ-$FILE_VERSION-all-platforms-java17.jar
 
       - name: Installer with bundled Java
         run: |
@@ -95,7 +115,7 @@ jobs:
           for f in build/jpackage/*.dmg build/jpackage/*.msi build/jpackage/*.deb; do
             [ -e "$f" ] || continue
             ext="${f##*.}"
-            cp "$f" "dist/FlipperJ-$APP_VERSION-${{ matrix.label }}.$ext"
+            cp "$f" "dist/FlipperJ-$FILE_VERSION-${{ matrix.label }}.$ext"
           done
 
       - name: Portable app folder with bundled Java (Linux, Windows)
@@ -104,9 +124,9 @@ jobs:
           ./gradlew --no-daemon -PappVersion=$APP_VERSION -PmaxHeap=${{ matrix.heap || '' }} -PinstallerType=app-image jpackage
           cd build/jpackage
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            7z a -tzip "../../dist/FlipperJ-$APP_VERSION-${{ matrix.label }}-portable.zip" FlipperJ > /dev/null
+            7z a -tzip "../../dist/FlipperJ-$FILE_VERSION-${{ matrix.label }}-portable.zip" FlipperJ > /dev/null
           else
-            tar czf "../../dist/FlipperJ-$APP_VERSION-${{ matrix.label }}-portable.tar.gz" FlipperJ
+            tar czf "../../dist/FlipperJ-$FILE_VERSION-${{ matrix.label }}-portable.tar.gz" FlipperJ
           fi
 
       - name: List packages
@@ -114,13 +134,13 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: FlipperJ-${{ env.APP_VERSION }}-${{ matrix.label }}
+          name: FlipperJ-${{ env.FILE_VERSION }}-${{ matrix.label }}
           path: dist/*
 
       - uses: actions/upload-artifact@v4
         if: runner.os == 'Linux'
         with:
-          name: FlipperJ-${{ env.APP_VERSION }}-all-platforms-java17
+          name: FlipperJ-${{ env.FILE_VERSION }}-all-platforms-java17
           path: dist-all/*
 
       - name: Attach to release
@@ -131,3 +151,29 @@ jobs:
             dist/*
             dist-all/*
           generate_release_notes: true
+
+  dev-release:
+    name: Development build release
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Remove the previous development build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release delete latest-dev --cleanup-tag --yes --repo "$GITHUB_REPOSITORY" || true
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-dev
+          target_commitish: ${{ github.sha }}
+          name: Development build
+          prerelease: true
+          make_latest: false
+          body: |
+            Automatic build of the latest code on main (commit ${{ github.sha }}).
+            Not an official version – for those see the releases with a version number.
+          files: dist/*
