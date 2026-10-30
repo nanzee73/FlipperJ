@@ -75,9 +75,9 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon -PappVersion=$APP_VERSION test distZip shadowJar
-          mkdir -p dist
-          cp build/distributions/flipperj-$APP_VERSION.zip dist/FlipperJ-$APP_VERSION-all-platforms-java17.zip
-          cp build/libs/flipperj-$APP_VERSION-all.jar dist/FlipperJ-$APP_VERSION-all-platforms-java17.jar
+          mkdir -p dist-all
+          cp build/distributions/flipperj-$APP_VERSION.zip dist-all/FlipperJ-$APP_VERSION-all-platforms-java17.zip
+          cp build/libs/flipperj-$APP_VERSION-all.jar dist-all/FlipperJ-$APP_VERSION-all-platforms-java17.jar
 
       - name: Installer with bundled Java
         run: |
@@ -109,9 +109,17 @@ jobs:
           name: FlipperJ-${{ env.APP_VERSION }}-${{ matrix.label }}
           path: dist/*
 
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Linux'
+        with:
+          name: FlipperJ-${{ env.APP_VERSION }}-all-platforms-java17
+          path: dist-all/*
+
       - name: Attach to release
         if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: |
+            dist/*
+            dist-all/*
           generate_release_notes: true
