@@ -136,6 +136,11 @@ With *Write raw data* the following files are written next to the `.prg` (`_a`/`
 
 These layouts are FlipperJ’s own; they are not guaranteed to match FLI Graph, Gunpaint or other editors.
 
+## User guide
+
+*Help ▸ User guide* (F1) explains every function in the language of the program (English, German, Polish,
+Swedish, Dutch). The pages are `src/main/resources/de/flipperj/help/help_<language>.html`.
+
 ## Checking the displayer in VICE
 
 *Help ▸ FLI test picture for VICE…* (or `flipperj --test-picture fli-test.prg`) writes a test picture and

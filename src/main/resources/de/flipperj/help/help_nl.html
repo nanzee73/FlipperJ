@@ -1,0 +1,196 @@
+<html><body>
+<h1>FlipperJ – Handleiding</h1>
+<p>FlipperJ zet elke afbeelding om naar een FLI-, AFLI- of IFLI-afbeelding voor de Commodore 64 en slaat die op als
+uitvoerbaar C64-programma (.prg) en/of als ruwe data. Elke wijziging zie je meteen in het voorbeeld.</p>
+
+<p><b>Inhoud</b></p>
+<ul>
+<li><a href="#quick">Snel aan de slag</a></li>
+<li><a href="#modes">FLI, AFLI en IFLI</a></li>
+<li><a href="#input">Afbeeldingen openen</a></li>
+<li><a href="#crop">Bijsnijden en schalen</a></li>
+<li><a href="#source">Bronpalet en kleuraanpassing</a></li>
+<li><a href="#prepare">Voorbereiden (contrast, helderheid, gamma, verzadiging)</a></li>
+<li><a href="#dither">Dithering en kleurkeuze</a></li>
+<li><a href="#dest">Doelpalet</a></li>
+<li><a href="#preview">Voorbeelden, zoomen en verschuiven</a></li>
+<li><a href="#output">Uitvoer: .prg en ruwe data</a></li>
+<li><a href="#settings">Instellingen en taal</a></li>
+<li><a href="#testpic">FLI-testbeeld voor VICE</a></li>
+<li><a href="#cli">Opdrachtregel</a></li>
+<li><a href="#tips">Tips voor goede resultaten</a></li>
+</ul>
+
+<a name="quick"></a><h2>Snel aan de slag</h2>
+<ol>
+<li>Open een afbeelding: <b>Bestand ▸ Afbeelding openen…</b>, de knop <b>Kiezen…</b>, of sleep een bestand naar het venster.</li>
+<li>Is de afbeelding niet 320×200 (of 160×200), dan opent <b>Bijsnijden / schalen</b>. Kies het gewenste deel en druk op OK.</li>
+<li>Kies de modus (FLI, AFLI of IFLI). Met <b>Live-voorbeeld</b> aan verschijnt het resultaat rechts na elke wijziging.</li>
+<li>Probeer de dithering en de voorbereidingsschuiven tot het resultaat je bevalt.</li>
+<li>Druk op <b>Converteren</b>. FlipperJ schrijft de .prg (en de ruwe data, als die aan staat) naar het uitvoerbestand bovenaan.</li>
+<li>Op de C64 of in VICE: <code>LOAD"NAAM",8</code> en <code>RUN</code> (of <code>SYS 2061</code>). Het beeld blijft staan tot je de C64 reset.</li>
+</ol>
+
+<a name="modes"></a><h2>FLI, AFLI en IFLI</h2>
+<table border="1" cellspacing="0">
+<tr><th>Modus</th><th>Resolutie</th><th>Kleuren</th></tr>
+<tr><td>FLI (multicolor)</td><td>160×200, dubbelbrede pixels</td><td>Per 4×8-cel: één kleur uit het kleuren-RAM, plus twee kleuren per cel <i>en pixelregel</i>, plus één achtergrondkleur voor het hele beeld.</td></tr>
+<tr><td>AFLI (hires-FLI)</td><td>320×200</td><td>Per 8×1-cel (één cel, één pixelregel): twee kleuren.</td></tr>
+<tr><td>IFLI (multicolor-interlace)</td><td>"gevoelsmatig" 320×200</td><td>Twee FLI-beelden die elk frame om beurten worden getoond, het tweede één pixel verschoven. Het oog mengt ze tot meer kleuren en fijnere details. Op een echte monitor flikkert het licht.</td></tr>
+</table>
+<p><b>De FLI-bug:</b> op een echte C64 kunnen de linker drie tekenkolommen (24 pixels) van elke FLI-regel de kleuren van
+het beeld niet tonen. FlipperJ weet dat en gebruikt daar alleen de achtergrondkleur. Met <b>FLI-bug weergeven</b> zie je
+deze kolommen zoals de C64 ze toont.</p>
+<p>Items die in de moduslijst als "gepland" zijn gemarkeerd, zijn nog niet beschikbaar.</p>
+
+<a name="input"></a><h2>Afbeeldingen openen</h2>
+<p>FlipperJ leest alle gangbare pc-formaten (PNG, JPEG, GIF, BMP, WebP, TIFF, PSD, TGA, PCX, …) en C64-afbeeldingen:
+Koala, Art Studio, Advanced Art Studio, Drazpaint, Drazlace, FLI, FLI Designer, FLI Graph, FLI Editor, AFLI, Gunpaint,
+Funpaint en FlipperJ's eigen ruwe bestanden. C64-afbeeldingen worden getekend met het gekozen bronpalet,
+interlace-afbeeldingen gemengd zoals het oog ze ziet.</p>
+<p>Het openvenster toont eerst "Alle beeldformaten"; er is ook een filter alleen voor C64-afbeeldingen.
+Open je een nieuwe afbeelding, dan volgt de naam van het uitvoerbestand (zelfde naam, .prg).</p>
+
+<a name="crop"></a><h2>Bijsnijden en schalen</h2>
+<p>Afbeeldingen die niet C64-formaat hebben, openen dit venster. Je kunt het altijd opnieuw openen met <b>Bijsnijden…</b>
+(onderaan) of <b>Bestand ▸ Bijsnijden / schalen…</b>.</p>
+<ul>
+<li><b>Kader:</b> sleep binnen het kader om het te verplaatsen, sleep de hoek om de grootte te wijzigen, sleep erbuiten
+voor een nieuw kader. De velden X, Y, Breedte en Hoogte stellen het exact in. <b>Hele afbeelding</b> en
+<b>Grootste gecentreerde uitsnede</b> zijn snelkoppelingen.</li>
+<li><b>Beeldverhouding:</b> de vorm van het eindbeeld. <i>C64 PAL</i> (ongeveer 1,50:1) past bij een PAL-monitor,
+<i>Vierkante pixels</i> (1,60:1) houdt het beeld precies zoals op de pc, <i>NTSC</i> (ongeveer 1,20:1), <i>Vrij</i> = geen regel.
+<b>Uitsnede vastzetten op doelverhouding</b> houdt het kader in die vorm.</li>
+<li><b>Schalen:</b> <i>Uitrekken</i> vult 320×200 en kan vervormen, <i>Passend (met rand)</i> houdt het hele kader en
+voegt randen toe, <i>Vullen (bijsnijden)</i> vult het scherm en snijdt af wat uitsteekt, <i>1:1</i> neemt precies
+320×200 pixels zonder schalen.</li>
+<li><b>Filter:</b> hoe pixels worden herberekend. <i>Gebiedsgemiddelde (zacht)</i> is zacht en het best voor foto's,
+<i>Dichtstbijzijnde buur</i> houdt harde pixelranden (pixel-art).</li>
+<li><b>Randkleur…:</b> kleur van de randen die <i>Passend</i> toevoegt.</li>
+</ul>
+<p><b>Uitsnede kiezen in voorbeeld:</b> klik rechts in het linker voorbeeld (of <b>Bestand ▸ Uitsnede kiezen in
+voorbeeld</b>) om daar direct een ander deel van het origineel te kiezen: muiswiel = grootte, links slepen = verplaatsen,
+rechtsklik of Enter = toepassen, Esc = annuleren. Het hele origineel blijft bewaard, dus je kunt zo vaak opnieuw kiezen
+als je wilt.</p>
+
+<a name="source"></a><h2>Bronpalet en kleuraanpassing</h2>
+<p>Het <b>bronpalet</b> vertelt FlipperJ welke RGB-kleuren de 16 C64-kleuren hebben wanneer het ze met je afbeelding
+vergelijkt. Pepto en Colodore zijn gemeten aan echte C64's; de andere (DeeKay, PALette, Community Colors, …) zijn
+populaire alternatieven. <b>Eigen…</b> opent de palet-editor: losse kleuren wijzigen, .vpl-, .gpl- of hex-bestanden
+laden, opslaan als .vpl.</p>
+<p><b>Vergelijken in</b> bepaalt hoe "gelijkenis" wordt gemeten:</p>
+<ul>
+<li><b>YUV</b> (standaard): scheidt helderheid van kleur, zoals een tv. <b>Gewicht U</b> en <b>Gewicht V</b> bepalen hoe
+zwaar kleurverschillen tellen ten opzichte van helderheid (50 = normaal). Lagere waarden = helderheid telt zwaarder.</li>
+<li><b>RGB:</b> RGB-afstand, gewogen naar hoe helder elk kanaal oogt.</li>
+<li><b>HSL:</b> tint, verzadiging en lichtheid.</li>
+</ul>
+<p><b>Helderheidsverloop respecteren:</b> bestraft daarnaast kleuren die te licht of te donker zijn. Helpt om
+verlopen en gezichten in de juiste volgorde van helderheid te houden.</p>
+
+<a name="prepare"></a><h2>Voorbereiden</h2>
+<p>Deze schuiven veranderen het beeld <i>vóór</i> de conversie (zie de weergave <b>Voorbereid</b>):
+<b>Contrast</b> en <b>Helderheid</b> (-100 tot 100), <b>Gamma %</b> (onder 100 = lichtere middentonen, boven 100 = donkerder)
+en <b>Verzadiging %</b> (0 = grijs, boven 100 = kleurrijker). De C64 heeft weinig donkere en weinig verzadigde kleuren,
+dus iets meer contrast en verzadiging helpt vaak.</p>
+
+<a name="dither"></a><h2>Dithering en kleurkeuze</h2>
+<p>Dithering mengt C64-kleuren in fijne patronen, zodat het oog de tussenkleuren ziet.</p>
+<ul>
+<li><b>Dithering:</b> <i>Geen</i> = vlakke vlakken. <i>Floyd-Steinberg, Atkinson, Jarvis-Judice-Ninke, Stucki, Sierra Lite</i>
+verdelen de fout over buurpixels (natuurlijke, korrelige look; Atkinson is lichter en contrastrijker).
+<i>Bayer 2×2/4×4/8×8</i> gebruiken een vast patroon (regelmatige "retro"-look, rustiger in animaties).</li>
+<li><b>Sterkte %:</b> hoeveel fout er wordt verdeeld. Lager = rustiger, hoger = meer detail en meer ruis.</li>
+<li><b>Doorlopen:</b> aan = de ditherfout mag doorlopen in buurcellen (zachtere overgangen);
+uit = elke cel wordt apart gedithered (strakkere celranden).</li>
+<li><b>Slangvormig (serpentine):</b> elke tweede regel wordt van rechts naar links verwerkt. Voorkomt diagonale "worm"-patronen.</li>
+<li><b>Doorgangen:</b> na de eerste ronde kiest FlipperJ de kleuren van elke cel opnieuw op basis van wat de dithering
+"wilde" en houdt de beste ronde. Meer doorgangen = beter, maar trager.</li>
+<li><b>Achtergrond:</b> de ene kleur die alle cellen delen. <i>Automatisch</i> kiest de beste; of kies een vaste kleur.</li>
+</ul>
+<p>Elke groep heeft een knop <b>Standaard</b>. Schuiven: de kleine pijlen verstellen met 1 (ingedrukt houden herhaalt),
+het streepje toont de standaardwaarde waar de knop op vastklikt, dubbelklikken zet de schuif terug.</p>
+
+<a name="dest"></a><h2>Doelpalet</h2>
+<p>Het <b>doelpalet</b> dient alleen om het resultaat <i>weer te geven</i> – kies het palet dat het meest op je monitor
+of emulator lijkt. Het verandert de C64-data niet.</p>
+<ul>
+<li><b>FLI-bug weergeven:</b> toont de drie linker kolommen zoals de C64 dat doet.</li>
+<li><b>PAL-pixelverhouding in voorbeelden:</b> toont de beelden iets breder, zoals op een PAL-monitor.</li>
+</ul>
+
+<a name="preview"></a><h2>Voorbeelden, zoomen en verschuiven</h2>
+<p>Links: <b>Origineel</b> of <b>Voorbereid</b> (na bijsnijden en voorbereiden). Rechts: <b>Resultaat</b> of
+<b>Foutenkaart</b> (licht = groot verschil met het voorbereide beeld, donker = goede overeenkomst).</p>
+<ul>
+<li>Muiswiel = zoomen, slepen met de rechtermuisknop = verschuiven, dubbelklik = passend. De knoppen (−, +, <b>Passend</b>,
+4×) doen hetzelfde. <b>4×</b> toont 4 schermpixels per C64-pixel.</li>
+<li><b>Koppelen</b> zoomt en verschuift beide voorbeelden samen. <b>Raster</b> toont bij inzoomen pixel- en 8×8-cellijnen.</li>
+<li><b>Live-voorbeeld</b> converteert automatisch na elke wijziging. Zet het uit op trage computers en druk dan op
+<b>Converteren</b>.</li>
+<li><b>Voorbereid opslaan</b> en <b>Resultaat en foutenkaart opslaan</b> schrijven PNG-bestanden, bijv. om te vergelijken
+of te laten zien.</li>
+<li><b>Annuleren</b> stopt een lopende conversie.</li>
+</ul>
+
+<a name="output"></a><h2>Uitvoer: .prg en ruwe data</h2>
+<ul>
+<li><b>Uitvoerbare .prg schrijven:</b> beeld plus weergaveprogramma in één bestand. Start met <code>RUN</code> of <code>SYS 2061</code>.</li>
+<li><b>Ruwe data schrijven:</b> voor je eigen demo- of weergavecode. Per frame (IFLI: achtervoegsel _a en _b):
+<code>NAAM_bitmap.bin</code> (8000 bytes), <code>NAAM_screens.bin</code> (8×1024 bytes, beeldregel y gebruikt
+scherm y AND 7), <code>NAAM_colorram.bin</code> (1000 bytes, multicolor) en <code>NAAM_bg.bin</code> (1 byte),
+plus één samengevoegd bestand <code>NAAM.fli / .afl / .ifl</code> met laadadres $3C00
+(kleuren-RAM $3C00, achtergrond $3FF0/$3FF1, schermen $4000, bitmap $6000, IFLI-frame B vanaf $8000).
+FlipperJ en MuleJ kunnen deze samengevoegde bestanden weer openen.</li>
+</ul>
+<table border="1" cellspacing="0">
+<tr><th>Geheugenindeling van de .prg</th><th></th></tr>
+<tr><td>$0801</td><td>BASIC-regel SYS 2061</td></tr>
+<tr><td>$0900–$0BFF</td><td>tabellen en weergaveprogramma</td></tr>
+<tr><td>$3C00–$3FE7</td><td>kleuren-RAM-data (gekopieerd naar $D800)</td></tr>
+<tr><td>$4000–$5FFF</td><td>8 schermen</td></tr>
+<tr><td>$6000–$7F3F</td><td>bitmap</td></tr>
+<tr><td>$8000–$BF3F</td><td>alleen IFLI: frame B, bij de start gekopieerd naar $C000</td></tr>
+</table>
+<p>De regels 197–199 van een FLI-beeld kunnen geen eigen kleuren krijgen (daar zijn geen badlines mogelijk); ze
+herhalen de kleuren van regel 196. FlipperJ houdt daar rekening mee.</p>
+
+<a name="settings"></a><h2>Instellingen en taal</h2>
+<p><b>Bestand ▸ Instellingen…</b> (op macOS: <b>FlipperJ ▸ Instellingen…</b>): taal, live-voorbeeld bij het starten,
+raster, gekoppelde voorbeelden, PAL-verhouding, welke uitvoer wordt geschreven en de uitvoermap voor nieuwe afbeeldingen
+(naast de invoerafbeelding of de laatst gekozen map). <b>Standaardwaarden</b> zet alles terug.</p>
+<p><b>Taal:</b> menu <b>Taal</b> of de instellingen. "Systeemtaal" volgt de taal van je computer. FlipperJ spreekt
+Engels, Duits, Pools, Zweeds en Nederlands.</p>
+
+<a name="testpic"></a><h2>FLI-testbeeld voor VICE</h2>
+<p><b>Help ▸ FLI-testbeeld voor VICE…</b> schrijft een testprogramma en een PNG die laat zien hoe het scherm eruit moet
+zien. Laad het in VICE (PAL) of op een echte C64 en vergelijk:</p>
+<ul>
+<li>Linker 3 kolommen (FLI-bug): regel 0 zwart, alle andere regels lichtgrijs.</li>
+<li>Kleurenbalk: elke regel een eigen kleur, die zich elke 15 regels herhaalt – zonder gaten of dubbele regels.</li>
+<li>Streepjescode: het regelnummer binair, wit = 1, donkergrijs = 0.</li>
+<li>Rechterdeel: regel 0 wit, de eerste regel van elke tekenrij rood, regel 196 geel, de rest blauw.
+De regels 197–199 herhalen regel 196.</li>
+</ul>
+<p>Een regel met de kleuren van zijn buurregel wijst op een timingprobleem van het weergaveprogramma – meld het graag.</p>
+
+<a name="cli"></a><h2>Opdrachtregel</h2>
+<p>Met argumenten draait FlipperJ zonder venster:</p>
+<pre>flipperj [opties] afbeelding.png uitvoer.prg
+flipperj --test-picture fli-test.prg</pre>
+<p>Belangrijke opties: <code>--mode fli|afli|ifli</code>, <code>--palette NAAM|BESTAND</code>, <code>--space rgb|yuv|hsl</code>,
+<code>--dither NAAM</code> (none, fs, atkinson, jarvis, stucki, sierra, bayer2, bayer4, bayer8), <code>--strength N</code>,
+<code>--no-bleeding</code>, <code>--serpentine</code>, <code>--passes N</code>, <code>--bg N</code>,
+<code>--brightness/--contrast/--gamma/--saturation N</code>, <code>--scale stretch|fit|fill</code>, <code>--raw</code>,
+<code>--no-prg</code>, <code>--preview BESTAND.png</code>. <code>flipperj --help</code> toont ze allemaal.</p>
+
+<a name="tips"></a><h2>Tips voor goede resultaten</h2>
+<ul>
+<li>Kies een afbeelding met een duidelijk onderwerp en niet te veel kleine details; gezichten en grote vormen werken het best.</li>
+<li>IFLI voor foto's met zachte verlopen, AFLI voor lijnwerk en hires-details.</li>
+<li>Ziet het resultaat er modderig uit: verhoog het contrast, verlaag de U/V-gewichten of zet <i>Helderheidsverloop respecteren</i> aan.</li>
+<li>Ziet het er ruizig uit: verlaag de dithersterkte of probeer Bayer 4×4.</li>
+<li>De <b>Foutenkaart</b> toont waar het beeld hulp nodig heeft; de 4×-zoom met raster helpt om cellen te controleren.</li>
+</ul>
+<p>Feedback en foutmeldingen zijn welkom op GitHub: <a href="https://github.com/nanzee73/FlipperJ">github.com/nanzee73/FlipperJ</a></p>
+</body></html>

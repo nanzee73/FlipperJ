@@ -1,5 +1,7 @@
 package de.flipperj.gui;
 
+import de.c64gfx.swing.HelpDialog;
+
 import de.c64gfx.dither.Dither;
 import de.c64gfx.swing.FileDialogs;
 import de.c64gfx.swing.Icons;
@@ -224,6 +226,11 @@ public class MainWindow extends JFrame {
         bar.add(file);
         bar.add(language);
         JMenu help = I18n.text(new JMenu(), "menu.help");
+        JMenuItem guide = I18n.text(new JMenuItem(), "menu.help.guide");
+        guide.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
+        guide.addActionListener(e -> showGuide());
+        help.add(guide);
+        help.addSeparator();
         JMenuItem test = I18n.text(new JMenuItem(), "menu.help.testPicture");
         test.addActionListener(e -> writeTestPicture());
         help.add(test);
@@ -235,6 +242,11 @@ public class MainWindow extends JFrame {
         }
         bar.add(help);
         return bar;
+    }
+
+    /** User guide in the current language (F1). */
+    public void showGuide() {
+        HelpDialog.show(this, App.NAME + " – " + tr("menu.help.guide"), "/de/flipperj/help/help");
     }
 
     /** Writes the FLI test picture (.prg) and the expected screen (PNG) to check the displayer in VICE. */

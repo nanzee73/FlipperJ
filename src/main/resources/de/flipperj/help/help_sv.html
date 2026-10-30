@@ -1,0 +1,191 @@
+<html><body>
+<h1>FlipperJ – Handbok</h1>
+<p>FlipperJ gör om vilken bild som helst till en FLI-, AFLI- eller IFLI-bild för Commodore 64 och sparar den som ett
+körbart C64-program (.prg) och/eller som rådata. Varje ändring syns direkt i förhandsvisningen.</p>
+
+<p><b>Innehåll</b></p>
+<ul>
+<li><a href="#quick">Snabbstart</a></li>
+<li><a href="#modes">FLI, AFLI och IFLI</a></li>
+<li><a href="#input">Öppna bilder</a></li>
+<li><a href="#crop">Beskär och skala</a></li>
+<li><a href="#source">Källpalett och färgmatchning</a></li>
+<li><a href="#prepare">Förbered (kontrast, ljusstyrka, gamma, mättnad)</a></li>
+<li><a href="#dither">Dithering och färgval</a></li>
+<li><a href="#dest">Målpalett</a></li>
+<li><a href="#preview">Förhandsvisning, zoom och panorering</a></li>
+<li><a href="#output">Utdata: .prg och rådata</a></li>
+<li><a href="#settings">Inställningar och språk</a></li>
+<li><a href="#testpic">FLI-testbild för VICE</a></li>
+<li><a href="#cli">Kommandorad</a></li>
+<li><a href="#tips">Tips för bra resultat</a></li>
+</ul>
+
+<a name="quick"></a><h2>Snabbstart</h2>
+<ol>
+<li>Öppna en bild: <b>Arkiv ▸ Öppna bild…</b>, knappen <b>Välj…</b> eller dra en fil till fönstret.</li>
+<li>Om bilden inte är 320×200 (eller 160×200) öppnas <b>Beskär / skala</b>. Välj den del du vill ha och tryck OK.</li>
+<li>Välj läge (FLI, AFLI eller IFLI). Med <b>Live-förhandsvisning</b> påslagen visas resultatet till höger efter varje ändring.</li>
+<li>Prova dithering och förberedelsereglagen tills du gillar resultatet.</li>
+<li>Tryck <b>Konvertera</b>. FlipperJ skriver .prg-filen (och rådata, om påslaget) till utdatafilen som visas överst.</li>
+<li>På C64 eller i VICE: <code>LOAD"NAMN",8</code> och <code>RUN</code> (eller <code>SYS 2061</code>). Bilden ligger kvar tills du återställer C64:an.</li>
+</ol>
+
+<a name="modes"></a><h2>FLI, AFLI och IFLI</h2>
+<table border="1" cellspacing="0">
+<tr><th>Läge</th><th>Upplösning</th><th>Färger</th></tr>
+<tr><td>FLI (multicolor)</td><td>160×200, dubbelbreda pixlar</td><td>Per 4×8-cell: en färg från färg-RAM, plus två färger per cell <i>och pixelrad</i>, plus en bakgrundsfärg för hela bilden.</td></tr>
+<tr><td>AFLI (hires-FLI)</td><td>320×200</td><td>Per 8×1-cell (en cell, en pixelrad): två färger.</td></tr>
+<tr><td>IFLI (multicolor-interlace)</td><td>"upplevd" 320×200</td><td>Två FLI-bilder som visas omväxlande varje bildruta, den andra förskjuten en pixel. Ögat blandar dem till fler färger och finare detaljer. På en riktig monitor flimrar det lite.</td></tr>
+</table>
+<p><b>FLI-buggen:</b> på en riktig C64 kan de tre vänstra teckenkolumnerna (24 pixlar) på varje FLI-rad inte visa bildens
+färger. FlipperJ vet detta och använder där bara bakgrundsfärgen. Med <b>Visa FLI-buggen</b> ser du kolumnerna som C64:an
+visar dem.</p>
+<p>Poster i lägeslistan som är markerade som "planerad" finns inte ännu.</p>
+
+<a name="input"></a><h2>Öppna bilder</h2>
+<p>FlipperJ läser alla vanliga PC-format (PNG, JPEG, GIF, BMP, WebP, TIFF, PSD, TGA, PCX, …) och C64-bilder:
+Koala, Art Studio, Advanced Art Studio, Drazpaint, Drazlace, FLI, FLI Designer, FLI Graph, FLI Editor, AFLI, Gunpaint,
+Funpaint och FlipperJ:s egna rådatafiler. C64-bilder ritas med vald källpalett, interlace-bilder blandas som ögat ser dem.</p>
+<p>Öppna-dialogen visar först "Alla bildformat"; det finns också ett filter bara för C64-bilder.
+När du öppnar en ny bild följer utdatafilens namn med (samma namn, .prg).</p>
+
+<a name="crop"></a><h2>Beskär och skala</h2>
+<p>Bilder som inte har C64-storlek öppnar den här dialogen. Du kan öppna den igen när som helst med <b>Beskär…</b>
+(nederst) eller <b>Arkiv ▸ Beskär / skala…</b>.</p>
+<ul>
+<li><b>Ram:</b> dra inuti ramen för att flytta den, dra i hörnet för att ändra storlek, dra utanför för att rita en ny ram.
+Fälten X, Y, Bredd och Höjd ställer in den exakt. <b>Hela bilden</b> och <b>Största centrerade utsnitt</b> är genvägar.</li>
+<li><b>Bildförhållande:</b> den färdiga bildens form. <i>C64 PAL</i> (cirka 1,50:1) passar en PAL-monitor,
+<i>Kvadratiska pixlar</i> (1,60:1) behåller bilden exakt som på PC:n, <i>NTSC</i> (cirka 1,20:1), <i>Fri</i> = ingen regel.
+<b>Lås utsnittet till målformatet</b> håller ramen i den formen.</li>
+<li><b>Skalning:</b> <i>Sträck ut</i> fyller 320×200 och kan förvränga, <i>Anpassa (med kant)</i> behåller hela ramen och
+lägger till kanter, <i>Fyll (beskär)</i> fyller skärmen och skär bort det som sticker ut, <i>1:1</i> tar exakt 320×200
+pixlar utan skalning.</li>
+<li><b>Filter:</b> hur pixlar räknas om. <i>Ytmedelvärde (mjuk)</i> är mjukt och bäst för foton, <i>Närmaste granne</i>
+behåller skarpa pixelkanter (pixelgrafik).</li>
+<li><b>Kantfärg…:</b> färgen på kanterna som <i>Anpassa</i> lägger till.</li>
+</ul>
+<p><b>Välj utsnitt i förhandsvisningen:</b> högerklicka i den vänstra förhandsvisningen (eller <b>Arkiv ▸ Välj utsnitt i
+förhandsvisningen</b>) för att välja en annan del av originalet direkt där: mushjul = storlek, dra med vänster = flytta,
+högerklick eller Enter = använd, Esc = avbryt. Hela originalet sparas, så du kan välja om hur ofta du vill.</p>
+
+<a name="source"></a><h2>Källpalett och färgmatchning</h2>
+<p><b>Källpaletten</b> talar om för FlipperJ vilka RGB-färger de 16 C64-färgerna har när den jämför dem med din bild.
+Pepto och Colodore är uppmätta på riktiga C64:or; de andra (DeeKay, PALette, Community Colors, …) är populära
+alternativ. <b>Egen…</b> öppnar paletteditorn: ändra enskilda färger, läs in .vpl-, .gpl- eller hex-filer, spara som .vpl.</p>
+<p><b>Matcha i</b> bestämmer hur "likhet" mäts:</p>
+<ul>
+<li><b>YUV</b> (standard): skiljer ljushet från färg, som en TV. <b>Vikt U</b> och <b>Vikt V</b> bestämmer hur mycket
+färgskillnader räknas jämfört med ljushet (50 = normalt). Lägre värden = ljusheten räknas mer.</li>
+<li><b>RGB:</b> RGB-avstånd viktat efter hur ljus varje kanal ser ut.</li>
+<li><b>HSL:</b> nyans, mättnad och ljushet.</li>
+</ul>
+<p><b>Ta hänsyn till ljushetsskalan:</b> straffar dessutom färger som är för ljusa eller för mörka. Hjälper till att
+hålla övergångar och ansikten i rätt ljushetsordning.</p>
+
+<a name="prepare"></a><h2>Förbered</h2>
+<p>Dessa reglage ändrar bilden <i>före</i> konverteringen (se vyn <b>Förberedd</b>):
+<b>Kontrast</b> och <b>Ljusstyrka</b> (-100 till 100), <b>Gamma %</b> (under 100 = ljusare mellantoner, över 100 = mörkare)
+och <b>Mättnad %</b> (0 = grått, över 100 = färggladare). C64:an har få mörka och få mättade färger, så lite mer kontrast
+och mättnad hjälper ofta.</p>
+
+<a name="dither"></a><h2>Dithering och färgval</h2>
+<p>Dithering blandar C64-färger i fina mönster så att ögat ser färgerna däremellan.</p>
+<ul>
+<li><b>Dithering:</b> <i>Ingen</i> = platta ytor. <i>Floyd-Steinberg, Atkinson, Jarvis-Judice-Ninke, Stucki, Sierra Lite</i>
+sprider felet till grannpixlar (naturligt, kornigt utseende; Atkinson är ljusare och mer kontrastrik).
+<i>Bayer 2×2/4×4/8×8</i> använder ett fast mönster (regelbundet "retro"-utseende, lugnare i animationer).</li>
+<li><b>Styrka %:</b> hur mycket fel som sprids. Lägre = lugnare, högre = fler detaljer och mer brus.</li>
+<li><b>Utflytning:</b> på = ditherfelet får rinna in i grannceller (mjukare övergångar);
+av = varje cell dithras för sig (renare cellkanter).</li>
+<li><b>Serpentin:</b> varannan rad gås igenom från höger till vänster. Undviker diagonala "mask"-mönster.</li>
+<li><b>Omgångar:</b> efter första körningen väljer FlipperJ färgerna i varje cell igen utifrån vad ditheringen "ville"
+och behåller den bästa körningen. Fler omgångar = bättre, men långsammare.</li>
+<li><b>Bakgrund:</b> den färg som alla celler delar. <i>Automatisk</i> väljer den bästa; eller välj en fast färg.</li>
+</ul>
+<p>Varje grupp har en knapp <b>Standard</b>. Reglage: de små pilarna ändrar med 1 (håll nedtryckt för att upprepa),
+markeringen visar standardvärdet där knoppen snäpper fast, ett dubbelklick återställer reglaget.</p>
+
+<a name="dest"></a><h2>Målpalett</h2>
+<p><b>Målpaletten</b> används bara för att <i>visa</i> resultatet – välj den som mest liknar din monitor eller emulator.
+Den ändrar inte C64-datan.</p>
+<ul>
+<li><b>Visa FLI-buggen:</b> visar de tre vänstra kolumnerna som C64:an gör.</li>
+<li><b>PAL-pixelproportioner i förhandsvisningen:</b> visar bilderna något bredare, som på en PAL-monitor.</li>
+</ul>
+
+<a name="preview"></a><h2>Förhandsvisning, zoom och panorering</h2>
+<p>Vänster: <b>Original</b> eller <b>Förberedd</b> (efter beskärning och förberedelse). Höger: <b>Resultat</b> eller
+<b>Felkarta</b> (ljust = stor skillnad mot den förberedda bilden, mörkt = bra överensstämmelse).</p>
+<ul>
+<li>Mushjul = zoom, dra med höger musknapp = panorera, dubbelklick = hela. Knapparna (−, +, <b>Hela</b>, 4×) gör samma
+sak. <b>4×</b> visar 4 skärmpixlar per C64-pixel.</li>
+<li><b>Koppla</b> zoomar och panorerar båda förhandsvisningarna tillsammans. <b>Rutnät</b> visar pixel- och 8×8-cellinjer
+vid inzoomning.</li>
+<li><b>Live-förhandsvisning</b> konverterar automatiskt efter varje ändring. Stäng av den på långsamma datorer och tryck
+<b>Konvertera</b> i stället.</li>
+<li><b>Spara förberedd</b> och <b>Spara resultat och felkarta</b> skriver PNG-filer, t.ex. för att jämföra eller visa.</li>
+<li><b>Avbryt</b> stoppar en pågående konvertering.</li>
+</ul>
+
+<a name="output"></a><h2>Utdata: .prg och rådata</h2>
+<ul>
+<li><b>Skriv körbar .prg:</b> bild och visningsprogram i en fil. Starta med <code>RUN</code> eller <code>SYS 2061</code>.</li>
+<li><b>Skriv rådata:</b> för egen demo- eller visningskod. Per bildruta (IFLI: ändelse _a och _b):
+<code>NAMN_bitmap.bin</code> (8000 byte), <code>NAMN_screens.bin</code> (8×1024 byte, bildrad y använder
+skärm y AND 7), <code>NAMN_colorram.bin</code> (1000 byte, multicolor) och <code>NAMN_bg.bin</code> (1 byte),
+plus en samlad fil <code>NAMN.fli / .afl / .ifl</code> med laddadress $3C00
+(färg-RAM $3C00, bakgrund $3FF0/$3FF1, skärmar $4000, bitmapp $6000, IFLI-bildruta B från $8000).
+FlipperJ och MuleJ kan öppna dessa samlade filer igen.</li>
+</ul>
+<table border="1" cellspacing="0">
+<tr><th>Minneskarta för .prg</th><th></th></tr>
+<tr><td>$0801</td><td>BASIC-rad SYS 2061</td></tr>
+<tr><td>$0900–$0BFF</td><td>tabeller och visningsprogram</td></tr>
+<tr><td>$3C00–$3FE7</td><td>färg-RAM-data (kopieras till $D800)</td></tr>
+<tr><td>$4000–$5FFF</td><td>8 skärmar</td></tr>
+<tr><td>$6000–$7F3F</td><td>bitmapp</td></tr>
+<tr><td>$8000–$BF3F</td><td>endast IFLI: bildruta B, kopieras till $C000 vid start</td></tr>
+</table>
+<p>Raderna 197–199 i en FLI-bild kan inte få egna färger (inga badlines är möjliga där); de upprepar färgerna från rad 196.
+FlipperJ tar hänsyn till det.</p>
+
+<a name="settings"></a><h2>Inställningar och språk</h2>
+<p><b>Arkiv ▸ Inställningar…</b> (på macOS: <b>FlipperJ ▸ Inställningar…</b>): språk, live-förhandsvisning vid start,
+rutnät, kopplade förhandsvisningar, PAL-proportioner, vilka utdata som skrivs och utdatamappen för nya bilder (bredvid
+indatabilden eller den senast valda mappen). <b>Återställ standard</b> återställer allt.</p>
+<p><b>Språk:</b> menyn <b>Språk</b> eller inställningarna. "Systemspråk" följer datorns språk. FlipperJ talar engelska,
+tyska, polska, svenska och nederländska.</p>
+
+<a name="testpic"></a><h2>FLI-testbild för VICE</h2>
+<p><b>Hjälp ▸ FLI-testbild för VICE…</b> skriver ett testprogram och en PNG som visar hur skärmen ska se ut. Ladda det i
+VICE (PAL) eller på en riktig C64 och jämför:</p>
+<ul>
+<li>Vänstra 3 kolumnerna (FLI-buggen): rad 0 svart, alla andra rader ljusgrå.</li>
+<li>Färgstapel: varje rad har en egen färg som upprepas var 15:e rad – utan luckor eller dubbla rader.</li>
+<li>Streckkod: radnumret binärt, vit = 1, mörkgrå = 0.</li>
+<li>Högra delen: rad 0 vit, första raden i varje teckenrad röd, rad 196 gul, resten blå. Raderna 197–199 upprepar rad 196.</li>
+</ul>
+<p>En rad med grannradens färger tyder på ett timingproblem i visningsprogrammet – rapportera det gärna.</p>
+
+<a name="cli"></a><h2>Kommandorad</h2>
+<p>Med argument körs FlipperJ utan fönster:</p>
+<pre>flipperj [flaggor] bild.png utdata.prg
+flipperj --test-picture fli-test.prg</pre>
+<p>Viktiga flaggor: <code>--mode fli|afli|ifli</code>, <code>--palette NAMN|FIL</code>, <code>--space rgb|yuv|hsl</code>,
+<code>--dither NAMN</code> (none, fs, atkinson, jarvis, stucki, sierra, bayer2, bayer4, bayer8), <code>--strength N</code>,
+<code>--no-bleeding</code>, <code>--serpentine</code>, <code>--passes N</code>, <code>--bg N</code>,
+<code>--brightness/--contrast/--gamma/--saturation N</code>, <code>--scale stretch|fit|fill</code>, <code>--raw</code>,
+<code>--no-prg</code>, <code>--preview FIL.png</code>. <code>flipperj --help</code> listar alla.</p>
+
+<a name="tips"></a><h2>Tips för bra resultat</h2>
+<ul>
+<li>Välj en bild med tydligt motiv och inte för många små detaljer; ansikten och stora former fungerar bäst.</li>
+<li>IFLI för foton med mjuka övergångar, AFLI för linjegrafik och hires-detaljer.</li>
+<li>Ser resultatet grumligt ut: höj kontrasten, sänk U/V-vikterna eller slå på <i>Ta hänsyn till ljushetsskalan</i>.</li>
+<li>Ser det brusigt ut: sänk ditherstyrkan eller prova Bayer 4×4.</li>
+<li><b>Felkartan</b> visar var bilden behöver hjälp, och 4×-zoom med rutnät hjälper till att kontrollera cellerna.</li>
+</ul>
+<p>Synpunkter och felrapporter är välkomna på GitHub: <a href="https://github.com/nanzee73/FlipperJ">github.com/nanzee73/FlipperJ</a></p>
+</body></html>
