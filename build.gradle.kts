@@ -114,7 +114,7 @@ tasks.register<Exec>("jpackage") {
         "--main-class", "de.flipperj.App",
         "--icon", icon.path,
         "--dest", dest.path,
-        "--java-options", "-Xmx2g"
+        "--java-options", "-Xmx" + ((findProperty("maxHeap") as String?)?.takeIf { it.isNotBlank() } ?: "2g")
     )
     when {
         os.isMacOsX -> args += listOf(

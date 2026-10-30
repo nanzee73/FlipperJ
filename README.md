@@ -32,6 +32,7 @@ Ready-to-run packages are built by GitHub Actions (`.github/workflows/release.ym
 | `FlipperJ-<version>-macos-arm64.dmg` / `-macos-x64.dmg` | macOS (Apple Silicon / Intel), Java included | open the .dmg, drag FlipperJ to *Applications* |
 | `FlipperJ-<version>-windows-x64.msi` | Windows, Java included | install, start from the Start menu |
 | `FlipperJ-<version>-windows-x64-portable.zip` | Windows, Java included, no installation | unzip, run `FlipperJ\FlipperJ.exe` |
+| `FlipperJ-<version>-windows-x86.msi` / `-windows-x86-portable.zip` | 32-bit Windows, Java included | as above |
 | `FlipperJ-<version>-linux-x64.deb` | Debian/Ubuntu, Java included | `sudo apt install ./FlipperJ-…deb`, then *FlipperJ* in the menu |
 | `FlipperJ-<version>-linux-x64-portable.tar.gz` | any Linux, Java included | unpack, run `FlipperJ/bin/FlipperJ` |
 | `FlipperJ-<version>-all-platforms-java17.zip` | any system with Java 17+ | unzip, run `bin/flipperj` (Linux/macOS) or `bin\flipperj.bat` (Windows) |
