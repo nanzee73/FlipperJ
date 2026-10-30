@@ -49,11 +49,7 @@ Build a package locally (on the target system): `./gradlew jpackage` (installer)
 ## Shared library
 
 Palettes, colour matching, dithering, the image panel, file dialogs, translations of shared texts and more come from
-[C64GfxLib](https://github.com/nanzee73/C64GfxLib) (also used by MuleJ), via GitHub Packages.
-Building needs a login once, see *Access to the package* in the C64GfxLib README:
-`gpr.user` / `gpr.key` (token with `read:packages`) in `~/.gradle/gradle.properties`.
-The release workflow needs the same token as repository secret `C64GFX_TOKEN`
-(*Settings ▸ Secrets and variables ▸ Actions ▸ New repository secret*).
+[C64GfxLib](https://github.com/nanzee73/C64GfxLib) (also used by MuleJ), via [JitPack](https://jitpack.io/#nanzee73/C64GfxLib) – no account or token needed.
 To work on the library at the same time, check it out next to FlipperJ and build with `-Pc64gfxLocal`.
 
 ## Open in IntelliJ IDEA
