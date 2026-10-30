@@ -774,7 +774,8 @@ public class MainWindow extends JFrame {
     private void loadInput(File f) {
         BufferedImage img;
         try {
-            img = ImageIO.read(f);
+            // C64 pictures (Koala, FLI, Gunpaint, …) are drawn with the selected source palette
+            img = de.c64gfx.swing.Images.read(f, (Palette) sourcePalette.getSelectedItem());
         } catch (Exception ex) {
             error(tr("err.read", ex.getMessage()));
             return;

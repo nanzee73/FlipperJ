@@ -96,8 +96,12 @@ public final class Cli {
         }
         if (in == null || out == null) { usage(); return; }
 
-        BufferedImage src = ImageIO.read(in.toFile());
-        if (src == null) throw new IllegalArgumentException("Unsupported image format: " + in);
+        BufferedImage src;
+        try {
+            src = de.c64gfx.swing.Images.read(in.toFile(), pal);   // C64 pictures drawn with the source palette
+        } catch (java.io.IOException e) {
+            throw new IllegalArgumentException("Unsupported image format: " + in + " (" + e.getMessage() + ")");
+        }
         ImageFitter.Settings fs = ImageFitter.Settings.defaults();
         fs = new ImageFitter.Settings(null, scale, fs.filter(), fs.aspect(), fs.fill());
         BufferedImage fitted = ImageFitter.fit(src, fs);
