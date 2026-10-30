@@ -223,14 +223,34 @@ public class MainWindow extends JFrame {
 
         bar.add(file);
         bar.add(language);
-        if (!Platform.IS_MAC) {
-            JMenu help = I18n.text(new JMenu(), "menu.help");
+        JMenu help = I18n.text(new JMenu(), "menu.help");
+        JMenuItem test = I18n.text(new JMenuItem(), "menu.help.testPicture");
+        test.addActionListener(e -> writeTestPicture());
+        help.add(test);
+        if (!Platform.IS_MAC) {                 // on macOS "About" sits in the application menu
             JMenuItem about = I18n.text(new JMenuItem(), "menu.help.about");
             about.addActionListener(e -> showAbout());
+            help.addSeparator();
             help.add(about);
-            bar.add(help);
         }
+        bar.add(help);
         return bar;
+    }
+
+    /** Writes the FLI test picture (.prg) and the expected screen (PNG) to check the displayer in VICE. */
+    private void writeTestPicture() {
+        File f = FileDialogs.save(this, "dlg.testPicture.title", FileDialogs.lastDir("output"), "fli-test.prg",
+                "filter.prg", "prg");
+        if (f == null) return;
+        try {
+            ConversionResult r = de.flipperj.output.TestPicture.result();
+            java.nio.file.Files.write(f.toPath(), PrgBuilder.build(r));
+            File png = new File(f.getParentFile(), f.getName().replaceFirst("\\.[^.]*$", "") + "_expected.png");
+            ImageIO.write(r.render((Palette) sourcePalette.getSelectedItem()), "png", png);
+            setStatus("status.testPicture", f.getName(), png.getName());
+        } catch (Exception ex) {
+            error(tr("err.write", ex.getMessage()));
+        }
     }
 
     /** About box (also used by the macOS application menu). */

@@ -8,6 +8,7 @@ import de.c64gfx.swing.ImageAdjust;
 import de.c64gfx.swing.ImageFitter;
 import de.flipperj.output.PrgBuilder;
 import de.flipperj.output.RawExporter;
+import de.flipperj.output.TestPicture;
 import de.c64gfx.palette.Palette;
 import de.c64gfx.palette.Palettes;
 
@@ -48,10 +49,17 @@ public final class Cli {
                   --raw                       additionally write raw data files
                   --no-prg                    do not write the .prg
                   --preview FILE.png          write a PNG preview of the result
+
+                flipperj --test-picture [out.prg]   FLI test picture to check the displayer timing in VICE,
+                                                    plus out_expected.png showing how it must look
                 """);
     }
 
     public static void run(String[] args) throws Exception {
+        if (args.length >= 1 && args[0].equals("--test-picture")) {
+            writeTestPicture(Path.of(args.length > 1 ? args[1] : "fli-test.prg"));
+            return;
+        }
         FliMode mode = FliMode.FLI;
         Palette pal = Palettes.PEPTO;
         ColorMatcher.Space space = ColorMatcher.Space.YUV;
@@ -127,6 +135,16 @@ public final class Cli {
             ImageIO.write(r.render(pal), "png", preview.toFile());
             System.out.println("Wrote " + preview);
         }
+    }
+
+    /** Writes the FLI test picture (see {@link TestPicture}) and the expected screen as PNG next to it. */
+    static void writeTestPicture(Path prg) throws Exception {
+        var r = TestPicture.result();
+        Files.write(prg, PrgBuilder.build(r));
+        String name = prg.getFileName().toString().replaceFirst("\\.[^.]*$", "");
+        Path png = prg.resolveSibling(name + "_expected.png");
+        ImageIO.write(r.render(Palettes.PEPTO), "png", png.toFile());
+        System.out.println("Wrote " + prg + " and " + png);
     }
 
     static Palette paletteByName(String n) throws Exception {

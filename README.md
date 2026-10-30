@@ -132,6 +132,22 @@ With *Write raw data* the following files are written next to the `.prg` (`_a`/`
 
 These layouts are FlipperJ’s own; they are not guaranteed to match FLI Graph, Gunpaint or other editors.
 
+## Checking the displayer in VICE
+
+*Help ▸ FLI test picture for VICE…* (or `flipperj --test-picture fli-test.prg`) writes a test picture and
+`fli-test_expected.png` next to it. Load the .prg in VICE (PAL) and compare the screen with the PNG:
+
+| Area | Must look like |
+|---|---|
+| Left 3 columns (FLI bug) | line 0 black, all other lines light grey – a grey line 0 means the first line already has the FLI bug |
+| Colour bar | every line its own colour, the colours repeat every 15 lines without gaps or doubled lines |
+| Barcode (8 columns) | the line number in binary, white = 1, dark grey = 0 |
+| Right area | line 0 white, the first line of every character row red, line 196 yellow, the rest blue |
+| Lines 197–199 | repeat the colours of line 196 (yellow), there are no bad lines down there |
+
+A line that shows the colours of its neighbour, or a red line one pixel off the character rows, points to a
+timing error in the displayer.
+
 ## Status and limitations
 
 * The `.prg` displayer follows the VIC-II timing model (Christian Bauer’s “VIC article”) but has **not been
