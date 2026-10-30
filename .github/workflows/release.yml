@@ -74,7 +74,11 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon -PappVersion=$APP_VERSION test distZip shadowJar
+          set -o pipefail
+          if ! ./gradlew --no-daemon -PappVersion=$APP_VERSION test distZip shadowJar 2>&1 | tee gradle.log; then
+            grep -E "What went wrong|e: |error:|FAILED|Exception|> " gradle.log | head -40 | while IFS= read -r l; do echo "::error::$l"; done
+            exit 1
+          fi
           mkdir -p dist-all
           cp build/distributions/flipperj-$APP_VERSION.zip dist-all/FlipperJ-$APP_VERSION-all-platforms-java17.zip
           cp build/libs/flipperj-$APP_VERSION-all.jar dist-all/FlipperJ-$APP_VERSION-all-platforms-java17.jar
@@ -82,7 +86,11 @@ jobs:
       - name: Installer with bundled Java
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon -PappVersion=$APP_VERSION -PmaxHeap=${{ matrix.heap || '' }} jpackage
+          set -o pipefail
+          if ! ./gradlew --no-daemon -PappVersion=$APP_VERSION -PmaxHeap=${{ matrix.heap || '' }} jpackage 2>&1 | tee gradle.log; then
+            grep -E "What went wrong|e: |error:|FAILED|Exception|> " gradle.log | head -40 | while IFS= read -r l; do echo "::error::$l"; done
+            exit 1
+          fi
           mkdir -p dist
           for f in build/jpackage/*.dmg build/jpackage/*.msi build/jpackage/*.deb; do
             [ -e "$f" ] || continue
