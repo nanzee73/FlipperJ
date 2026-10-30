@@ -56,7 +56,7 @@ tasks.jar {
     manifest {
         attributes(
             "Implementation-Title" to "FlipperJ",
-            "Implementation-Version" to project.version,
+            "Implementation-Version" to (System.getenv("DISPLAY_VERSION") ?: project.version),
             "Main-Class" to "de.flipperj.App"
         )
     }
