@@ -147,6 +147,12 @@ The leaping-dolphin icon (C64 cyan on C64 blue) lives in `src/main/resources/de/
 window, taskbar/dock and About box). `packaging/` holds the SVG source, a 512 px PNG and a Windows `.ico`,
 e.g. for `jpackage --icon packaging/flipperj.ico`.
 
+## License
+
+FlipperJ may be used, copied, changed and passed on for **noncommercial purposes only**, under the
+[PolyForm Noncommercial License 1.0.0](LICENSE). For commercial use ask nanzee73 for permission.
+Parts by others keep their own licenses, see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
 ## Project layout
 
 ```
