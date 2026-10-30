@@ -2,6 +2,13 @@
 #  - Push a tag like v1.0.0 (or create a release with a new tag on GitHub): all packages are built
 #    and attached to that release.
 #  - "Run workflow" on the Actions tab: test build, packages are available as workflow artifacts.
+#
+# File names (the same scheme as MuleJ):
+#   FlipperJ-<version>-<platform>.msi / .dmg / .deb      installer with bundled Java
+#   FlipperJ-<version>-<platform>-portable.zip / .tar.gz  portable app folder with bundled Java (Windows, Linux)
+#   FlipperJ-<version>-all-platforms-java17.zip           start scripts bin/flipperj and bin/flipperj.bat, needs Java 17+
+#   FlipperJ-<version>-all-platforms-java17.jar           single jar (java -jar), needs Java 17+
+# <platform>: linux-x64, windows-x64, macos-arm64 (Apple Silicon), macos-x64 (Intel)
 name: Build & Release
 
 on:
@@ -57,13 +64,14 @@ jobs:
             "$($wix.FullName)\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           }
 
-      - name: Tests and portable zip (needs installed Java 17+)
+      - name: Tests, jar and zip with start scripts (need installed Java 17+)
         if: runner.os == 'Linux'
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon -PappVersion=$APP_VERSION test distZip
+          ./gradlew --no-daemon -PappVersion=$APP_VERSION test distZip shadowJar
           mkdir -p dist
           cp build/distributions/flipperj-$APP_VERSION.zip dist/FlipperJ-$APP_VERSION-all-platforms-java17.zip
+          cp build/libs/flipperj-$APP_VERSION-all.jar dist/FlipperJ-$APP_VERSION-all-platforms-java17.jar
 
       - name: Installer with bundled Java
         run: |

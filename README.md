@@ -35,6 +35,7 @@ Ready-to-run packages are built by GitHub Actions (`.github/workflows/release.ym
 | `FlipperJ-<version>-linux-x64.deb` | Debian/Ubuntu, Java included | `sudo apt install ./FlipperJ-…deb`, then *FlipperJ* in the menu |
 | `FlipperJ-<version>-linux-x64-portable.tar.gz` | any Linux, Java included | unpack, run `FlipperJ/bin/FlipperJ` |
 | `FlipperJ-<version>-all-platforms-java17.zip` | any system with Java 17+ | unzip, run `bin/flipperj` (Linux/macOS) or `bin\flipperj.bat` (Windows) |
+| `FlipperJ-<version>-all-platforms-java17.jar` | any system with Java 17+ | `java -jar FlipperJ-<version>-all-platforms-java17.jar` (or double-click) |
 
 **Making a release:** create a tag `vX.Y.Z` (e.g. `v1.0.0`; the first number must be at least 1 because of macOS)
 – in IntelliJ via *Git ▸ New Tag…* and *Push* with *Push Tags*, or on GitHub via *Releases ▸ Draft a new release*.

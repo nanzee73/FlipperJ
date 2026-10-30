@@ -2,6 +2,8 @@ import org.gradle.internal.os.OperatingSystem
 
 plugins {
     application
+    // single runnable jar with all dependencies (merges the ImageIO plugin registrations)
+    id("com.gradleup.shadow") version "8.3.5"
 }
 
 group = "de.flipperj"
@@ -58,6 +60,13 @@ tasks.jar {
             "Main-Class" to "de.flipperj.App"
         )
     }
+}
+
+// build/libs/flipperj-<version>-all.jar – start with: java -jar flipperj-<version>-all.jar
+tasks.shadowJar {
+    archiveBaseName.set("flipperj")
+    archiveClassifier.set("all")
+    mergeServiceFiles()
 }
 
 tasks.test {
