@@ -1,7 +1,9 @@
 package de.flipperj.convert;
 
-import de.flipperj.color.ColorMatcher;
-import de.flipperj.palette.Palette;
+import de.c64gfx.dither.Dither;
+
+import de.c64gfx.color.ColorMatcher;
+import de.c64gfx.palette.Palette;
 
 /**
  * All parameters of a conversion.

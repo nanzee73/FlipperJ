@@ -1,5 +1,7 @@
 package de.flipperj.output;
 
+import de.c64gfx.prg.Asm6502;
+
 import de.flipperj.convert.ConversionResult;
 import de.flipperj.convert.FliFrame;
 import de.flipperj.convert.FliMode;

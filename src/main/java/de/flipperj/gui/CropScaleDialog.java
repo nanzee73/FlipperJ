@@ -1,10 +1,13 @@
 package de.flipperj.gui;
 
-import de.flipperj.image.ImageFitter;
+import de.c64gfx.swing.I18n;
+import de.c64gfx.swing.ImagePanel;
+
+import de.c64gfx.swing.ImageFitter;
 
 import javax.swing.*;
 
-import static de.flipperj.i18n.I18n.tr;
+import static de.c64gfx.swing.I18n.tr;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;

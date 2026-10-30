@@ -46,6 +46,14 @@ The macOS app is not signed (that needs a paid Apple Developer ID). On first sta
 Build a package locally (on the target system): `./gradlew jpackage` (installer) or
 `./gradlew jpackage -PinstallerType=app-image` (portable folder); output in `build/jpackage`.
 
+## Shared library
+
+Palettes, colour matching, dithering, the image panel, file dialogs, translations of shared texts and more come from
+[C64GfxLib](https://github.com/nanzee73/C64GfxLib) (also used by MuleJ), via GitHub Packages.
+Building needs a login once, see *Access to the package* in the C64GfxLib README:
+`gpr.user` / `gpr.key` (token with `read:packages`) in `~/.gradle/gradle.properties`.
+To work on the library at the same time, check it out next to FlipperJ and build with `-Pc64gfxLocal`.
+
 ## Open in IntelliJ IDEA
 
 1. *File ▸ Open…* and select the project folder (the one containing `build.gradle.kts`).

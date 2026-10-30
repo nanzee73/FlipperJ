@@ -1,13 +1,15 @@
 package de.flipperj.gui;
 
-import de.flipperj.i18n.I18n;
+import de.c64gfx.swing.Platform;
+
+import de.c64gfx.swing.I18n;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.util.Locale;
 
-import static de.flipperj.i18n.I18n.tr;
+import static de.c64gfx.swing.I18n.tr;
 
 /** Settings dialog: language, preview behaviour and output defaults. */
 public class OptionsDialog extends JDialog {
@@ -28,7 +30,7 @@ public class OptionsDialog extends JDialog {
     public OptionsDialog(Frame owner, Settings s) {
         super(owner, tr("opt.title"), true);
         language.addItem(SYSTEM);
-        for (Locale l : I18n.SUPPORTED) language.addItem(l);
+        for (Locale l : I18n.supportedLocales()) language.addItem(l);
         language.setRenderer(new DefaultListCellRenderer() {
             @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                                     boolean selected, boolean focus) {

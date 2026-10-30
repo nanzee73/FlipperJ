@@ -1,8 +1,10 @@
 package de.flipperj.convert;
 
-import de.flipperj.color.ColorMatcher;
-import de.flipperj.image.ImageAdjust;
-import de.flipperj.palette.Palettes;
+import de.c64gfx.dither.Dither;
+
+import de.c64gfx.color.ColorMatcher;
+import de.c64gfx.swing.ImageAdjust;
+import de.c64gfx.palette.Palettes;
 import org.junit.jupiter.api.Test;
 
 import java.awt.image.BufferedImage;

@@ -11,6 +11,10 @@ on:
 
 permissions:
   contents: write
+  packages: read      # C64GfxLib from GitHub Packages
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build:

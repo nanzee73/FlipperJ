@@ -1,13 +1,15 @@
 package de.flipperj;
 
-import de.flipperj.color.ColorMatcher;
+import de.c64gfx.dither.Dither;
+
+import de.c64gfx.color.ColorMatcher;
 import de.flipperj.convert.*;
-import de.flipperj.image.ImageAdjust;
-import de.flipperj.image.ImageFitter;
+import de.c64gfx.swing.ImageAdjust;
+import de.c64gfx.swing.ImageFitter;
 import de.flipperj.output.PrgBuilder;
 import de.flipperj.output.RawExporter;
-import de.flipperj.palette.Palette;
-import de.flipperj.palette.Palettes;
+import de.c64gfx.palette.Palette;
+import de.c64gfx.palette.Palettes;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

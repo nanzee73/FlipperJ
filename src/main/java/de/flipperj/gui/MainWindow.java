@@ -1,15 +1,24 @@
 package de.flipperj.gui;
 
+import de.c64gfx.dither.Dither;
+import de.c64gfx.swing.FileDialogs;
+import de.c64gfx.swing.Icons;
+import de.c64gfx.swing.ImagePanel;
+import de.c64gfx.swing.PaletteEditorDialog;
+import de.c64gfx.swing.Platform;
+import de.c64gfx.swing.SliderControls;
+import de.c64gfx.swing.WrapLayout;
+
 import de.flipperj.App;
-import de.flipperj.color.ColorMatcher;
+import de.c64gfx.color.ColorMatcher;
 import de.flipperj.convert.*;
-import de.flipperj.i18n.I18n;
-import de.flipperj.image.ImageAdjust;
-import de.flipperj.image.ImageFitter;
+import de.c64gfx.swing.I18n;
+import de.c64gfx.swing.ImageAdjust;
+import de.c64gfx.swing.ImageFitter;
 import de.flipperj.output.PrgBuilder;
 import de.flipperj.output.RawExporter;
-import de.flipperj.palette.Palette;
-import de.flipperj.palette.Palettes;
+import de.c64gfx.palette.Palette;
+import de.c64gfx.palette.Palettes;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -24,7 +33,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static de.flipperj.i18n.I18n.tr;
+import static de.c64gfx.swing.I18n.tr;
 
 /** Main window, laid out after Mufflon: settings on top, previews (pre-convert / result) below. */
 public class MainWindow extends JFrame {
@@ -119,6 +128,7 @@ public class MainWindow extends JFrame {
                 return super.getListCellRendererComponent(list, text, index, selected, focus);
             }
         });
+        ditherBox.setRenderer(I18n.enumRenderer("dither"));
         ditherBox.setSelectedItem(Dither.FLOYD_STEINBERG);
         fitTimer.setRepeats(false);
         liveTimer.setRepeats(false);
@@ -201,7 +211,7 @@ public class MainWindow extends JFrame {
         language.add(system);
         language.addSeparator();
         java.util.Map<Locale, JRadioButtonMenuItem> items = new java.util.HashMap<>();
-        for (Locale l : I18n.SUPPORTED) {
+        for (Locale l : I18n.supportedLocales()) {
             JRadioButtonMenuItem item = new JRadioButtonMenuItem(I18n.nativeName(l));
             item.addActionListener(e -> switchLanguage(l));
             lg.add(item);

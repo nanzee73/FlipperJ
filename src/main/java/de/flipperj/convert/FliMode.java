@@ -21,5 +21,5 @@ public enum FliMode {
     /** Pixel width of one frame (multicolor 160, hires 320). */
     public int frameWidth() { return multicolor ? 160 : 320; }
 
-    @Override public String toString() { return de.flipperj.i18n.I18n.tr("mode." + name()); }
+    @Override public String toString() { return de.c64gfx.swing.I18n.tr("mode." + name()); }
 }

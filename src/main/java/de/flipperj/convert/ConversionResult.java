@@ -1,6 +1,6 @@
 package de.flipperj.convert;
 
-import de.flipperj.palette.Palette;
+import de.c64gfx.palette.Palette;
 
 import java.awt.image.BufferedImage;
 import java.util.List;

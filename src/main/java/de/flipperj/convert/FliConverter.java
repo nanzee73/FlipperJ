@@ -1,8 +1,11 @@
 package de.flipperj.convert;
 
-import de.flipperj.color.ColorMatcher;
-import de.flipperj.image.ImageAdjust;
-import de.flipperj.palette.Palette;
+import de.c64gfx.dither.Dither;
+import de.c64gfx.dither.Ditherer;
+
+import de.c64gfx.color.ColorMatcher;
+import de.c64gfx.swing.ImageAdjust;
+import de.c64gfx.palette.Palette;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -342,48 +345,18 @@ public final class FliConverter {
     // ------------------------------------------------------------------ dithering
 
     /**
-     * Error diffusion or ordered dithering restricted to the colors allowed per cell/line.
-     * With bleeding off, error is never pushed across a cell border.
+     * Error diffusion or ordered dithering restricted to the colors allowed per cell and line
+     * (shared {@link Ditherer}: colour cells are {@code cellW}×1 because FLI colours change every line;
+     * without bleeding the error stays inside the {@code cellW}×8 character cell).
      *
      * @param cellW cell width in pixels (4 for multicolor, 8 for hires)
      */
     static void dither(float[] tgt, int W, int cellW, int[][] allowed, ColorMatcher m, ConvertSettings s,
                        int[] outIdx, float[] outSeen) {
-        final int H = 200;
-        Palette pal = s.sourcePalette();
-        Dither d = s.dither();
-        float strength = s.ditherStrength() / 100f;
-        float[] err = new float[W * H * 3];
-        for (int y = 0; y < H; y++) {
-            int dir = (s.serpentine() && (y & 1) == 1) ? -1 : 1;
-            for (int xi = 0; xi < W; xi++) {
-                int x = dir > 0 ? xi : W - 1 - xi;
-                int i = y * W + x;
-                int[] al = allowed[y * 40 + x / cellW];
-                float r = ImageAdjust.clamp(tgt[i * 3] + err[i * 3]);
-                float g = ImageAdjust.clamp(tgt[i * 3 + 1] + err[i * 3 + 1]);
-                float b = ImageAdjust.clamp(tgt[i * 3 + 2] + err[i * 3 + 2]);
-                float mr = r, mg = g, mb = b;
-                if (d.isOrdered()) {
-                    float t = d.threshold(x, y) * strength * 96f;
-                    mr = ImageAdjust.clamp(r + t); mg = ImageAdjust.clamp(g + t); mb = ImageAdjust.clamp(b + t);
-                }
-                int k = al.length == 1 ? al[0] : m.nearest(mr, mg, mb, al, al.length);
-                outIdx[i] = k;
-                outSeen[i * 3] = r; outSeen[i * 3 + 1] = g; outSeen[i * 3 + 2] = b;
-                if (!d.isErrorDiffusion() || strength <= 0) continue;
-                float er = (r - pal.r(k)) * strength, eg = (g - pal.g(k)) * strength, eb = (b - pal.b(k)) * strength;
-                int cellX = x / cellW, cellY = y >> 3;
-                for (int[] kv : d.kernel) {
-                    int nx = x + kv[0] * dir, ny = y + kv[1];
-                    if (nx < 0 || nx >= W || ny >= H) continue;
-                    if (!s.bleeding() && (nx / cellW != cellX || (ny >> 3) != cellY)) continue;
-                    float w = (float) kv[2] / d.divisor;
-                    int j = (ny * W + nx) * 3;
-                    err[j] += er * w; err[j + 1] += eg * w; err[j + 2] += eb * w;
-                }
-            }
-        }
+        int[] idx = Ditherer.run(tgt, W, 200, m, s.sourcePalette(),
+                new Ditherer.Settings(s.dither(), s.ditherStrength(), s.serpentine(), s.bleeding()),
+                new Ditherer.Cells(allowed, cellW, 1, cellW, 8), outSeen);
+        System.arraycopy(idx, 0, outIdx, 0, idx.length);
     }
 
     // ------------------------------------------------------------------ scoring

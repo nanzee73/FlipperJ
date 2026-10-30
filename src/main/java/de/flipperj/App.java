@@ -1,7 +1,10 @@
 package de.flipperj;
 
+import de.c64gfx.swing.AppConfig;
+import de.c64gfx.swing.I18n;
+import de.c64gfx.swing.Icons;
+import de.c64gfx.swing.Platform;
 import de.flipperj.gui.MainWindow;
-import de.flipperj.gui.Platform;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +22,14 @@ public final class App {
         return v != null ? v : "dev";
     }
 
+    /** Library set-up: preferences node, icons, translations (also needed by the command line). */
+    public static void configure() {
+        AppConfig.install(new AppConfig(NAME, "de/flipperj", "/de/flipperj/icons/flipperj-",
+                "de.flipperj.i18n.messages", AppConfig.LIBRARY_LANGUAGES, true));
+    }
+
     public static void main(String[] args) throws Exception {
+        configure();
         if (args.length > 0) {
             Cli.run(args);
             return;
@@ -27,7 +37,7 @@ public final class App {
         // macOS: menu bar at the top of the screen, app name, title bar follows light/dark mode.
         // Must happen before the first AWT class is used.
         Platform.initBeforeAwt(NAME);
-        de.flipperj.i18n.I18n.init();
+        I18n.init();
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -37,7 +47,7 @@ public final class App {
             // GTK (Linux) draws the slider value above the thumb, where it gets cut off;
             // the value is shown next to each slider anyway
             UIManager.put("Slider.paintValue", Boolean.FALSE);
-            de.flipperj.gui.Icons.installTaskbarIcon();
+            Icons.installTaskbarIcon();
             MainWindow w = new MainWindow();
             installDesktopHandlers(w);
             w.setVisible(true);
