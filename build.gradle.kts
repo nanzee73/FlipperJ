@@ -93,6 +93,8 @@ tasks.register<Exec>("jpackage") {
     dependsOn("installDist")
 
     val appVersion = project.version.toString()
+    // macOS installers refuse versions starting with 0 – the .dmg gets 1.x.y instead of 0.x.y (only inside the installer)
+    val installerVersion = if (os.isMacOsX && appVersion.startsWith("0")) "1" + appVersion.substring(1) else appVersion
     val input = layout.buildDirectory.dir("install/flipperj/lib").get().asFile
     val dest = layout.buildDirectory.dir("jpackage").get().asFile
     val type = (findProperty("installerType") as String?) ?: when {
@@ -110,7 +112,7 @@ tasks.register<Exec>("jpackage") {
     val args = mutableListOf(
         "--type", type,
         "--name", "FlipperJ",
-        "--app-version", appVersion,
+        "--app-version", installerVersion,
         "--vendor", "FlipperJ",
         "--description", "FLI / AFLI / IFLI image converter for the Commodore 64",
         "--copyright", "Copyright (c) 2026 nanzee73, PolyForm Noncommercial License 1.0.0",
