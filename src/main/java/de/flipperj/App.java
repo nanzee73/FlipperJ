@@ -62,8 +62,8 @@ public final class App {
             if (d.isSupported(Desktop.Action.APP_ABOUT)) d.setAboutHandler(e -> w.showAbout());
             if (d.isSupported(Desktop.Action.APP_PREFERENCES)) d.setPreferencesHandler(e -> w.showOptions());
             if (d.isSupported(Desktop.Action.APP_QUIT_HANDLER)) d.setQuitHandler((e, r) -> {
-                w.dispose();
-                r.performQuit();
+                if (w.requestQuit()) r.performQuit();       // asks about an unsaved project first
+                else r.cancelQuit();
             });
         } catch (Exception ignored) {
             // not supported on this platform

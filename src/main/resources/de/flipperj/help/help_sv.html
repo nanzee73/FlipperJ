@@ -15,6 +15,7 @@ körbart C64-program (.prg) och/eller som rådata. Varje ändring syns direkt i 
 <li><a href="#dest">Målpalett</a></li>
 <li><a href="#preview">Förhandsvisning, zoom och panorering</a></li>
 <li><a href="#output">Utdata: .prg och rådata</a></li>
+<li><a href="#projects">Projekt</a></li>
 <li><a href="#settings">Inställningar och språk</a></li>
 <li><a href="#testpic">FLI-testbild för VICE</a></li>
 <li><a href="#cli">Kommandorad</a></li>
@@ -150,6 +151,18 @@ FlipperJ och MuleJ kan öppna dessa samlade filer igen.</li>
 </table>
 <p>Raderna 197–199 i en FLI-bild kan inte få egna färger (inga badlines är möjliga där); de upprepar färgerna från rad 196.
 FlipperJ tar hänsyn till det.</p>
+
+<a name="projects"></a><h2>Projekt</h2>
+<p>Ett <b>projekt</b> håller ihop en bild med alla inställningar och redigeringar så att du kan fortsätta
+senare. <b>Arkiv ▸ Spara projekt</b> (Ctrl+S, på macOS ⌘S) skapar en mapp med bildens namn i <i>Projekt</i> – bredvid
+programmet om det går att skriva där, annars i <i>Dokument/FlipperJ</i>. Där ligger projektfilen (<i>namn.flipperj</i>),
+<i>import/</i> med en kopia av bilden och <i>export/</i> med alla resultat, som skrivs om vid varje sparning. Finns
+mappen redan används ”namn (2)”.</p>
+<p>Arkivmenyn har också <b>Nytt</b> (Ctrl+N), <b>Öppna bild</b> (Ctrl+O), <b>Öppna projekt</b> (Ctrl+Shift+O),
+<b>Senast öppnade</b> (de 10 senaste projekten), <b>Spara som</b> (Ctrl+Shift+S), <b>Stäng projekt</b> (Ctrl+W) och
+<b>Öppna projektmapp</b>. Så länge något är osparat visar titeln ”•”; innan ändringar skulle gå förlorade (stänga,
+avsluta, öppna en annan bild eller ett annat projekt) frågar programmet om du vill spara.</p>
+<p><b>Konvertera</b> har kortkommandot Ctrl+Enter (på macOS ⌘Enter); Ctrl+S sparar projektet.</p>
 
 <a name="settings"></a><h2>Inställningar och språk</h2>
 <p><b>Arkiv ▸ Inställningar…</b> (på macOS: <b>FlipperJ ▸ Inställningar…</b>): språk, live-förhandsvisning vid start,

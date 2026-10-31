@@ -7,7 +7,7 @@ with a live preview, several palettes, dithering and a runnable `.prg` output.
 
 | Area | What you get |
 |---|---|
-| Modes | **FLI** (multicolor, 160×200), **AFLI** (hires FLI, 320×200), **IFLI** (multicolor interlace, two frames). NUFLI/MUIFLI are shown in the UI but not implemented yet. |
+| Modes | **FLI** (multicolour, 160×200), **AFLI** (hires FLI, 320×200), **IFLI** (multicolour interlace, two frames). NUFLI/MUIFLI are shown in the UI but not implemented yet. |
 | Input | Everything Java ImageIO reads (PNG, JPEG, GIF, BMP) plus the TwelveMonkeys plugins (WebP, TIFF, PSD, TGA, PCX, PNM, IFF/ILBM, SGI, PICT, ICNS), and C64 pictures via C64GfxLib: Koala, Art Studio, Advanced Art Studio, Drazpaint, Drazlace, FLI / FLI Designer / FLI Graph / FLI Editor, AFLI, Gunpaint, Funpaint, NUFLI, MUFLI, MUIFLI and FlipperJ's own raw `.fli/.afl/.ifl` files (also compressed ones), drawn with the selected source palette. Drag & drop supported. The open dialog filters on “All image formats” by default (built from the installed readers); delete/rename buttons of the GTK file chooser are hidden. The output path follows each newly loaded picture (same name, next to the picture or in the output folder you chose). |
 | Crop & scale | Opens automatically for pictures that are not 320×200 or 160×200 – nothing is converted before you confirm, *Cancel* keeps the previous picture: draggable crop frame, aspect lock (PAL ≈1.50:1, square pixels, NTSC, free), stretch / fit (letterbox with border colour) / fill, four scaling filters. |
 | Palettes | Pepto, Colodore, DeeKay, PALette (PAL/Offence), Community Colors, Ptoing, C64HQ, CCS64, C64S, VICE (old default). Custom palettes: edit in the colour editor or load `.vpl` (VICE), `.gpl` (GIMP) and hex lists. Separate source (matching) and destination (display) palette, like Mufflon. |
@@ -85,7 +85,7 @@ flipperj --help
 
 ## How the conversion works
 
-1. The picture is cropped/scaled to 320×200 and adjusted (Prepare). Multicolor modes average pixel pairs.
+1. The picture is cropped/scaled to 320×200 and adjusted (Prepare). Multicolour modes average pixel pairs.
 2. An error table holds the distance of every pixel to all 16 colours (in the chosen colour space).
 3. Colour selection respects the hardware: one background (`$D021`) for the whole picture, one colour RAM
    value per 4×8 cell, two screen colours per cell **and per raster line** (that is what FLI adds).
@@ -102,7 +102,7 @@ is what the data contains; the unit tests check that data and preview match pixe
 
 * Picture line 0 (raster `$33`) is a regular bad line, so it has no FLI bug.
 * Lines 1–196 are forced late bad lines; the first 3 character columns read `$FF` (the FLI bug).
-  With *Render FLI bug* on, those cells are kept at the background colour in multicolor modes
+  With *Render FLI bug* on, those cells are kept at the background colour in multicolour modes
   (AFLI shows light grey there, which cannot be avoided). Switch it off if you cover the area with sprites.
 * Raster lines `$F8`–`$FA` (picture lines 197–199) cannot be bad lines any more, so they reuse the
   screen colours of line 196. The converter takes this into account.
@@ -131,7 +131,7 @@ then the classic 23-cycle FLI loop runs until `$F7`. IFLI toggles bank (`$DD00`)
 With *Write raw data* the following files are written next to the `.prg` (`_a`/`_b` for IFLI frames):
 
 * `NAME_bitmap.bin` (8000 bytes), `NAME_screens.bin` (8 × 1024 bytes, picture line *y* uses screen *y & 7*),
-  `NAME_colorram.bin` (1000 bytes, multicolor), `NAME_bg.bin` (1 byte)
+  `NAME_colorram.bin` (1000 bytes, multicolour), `NAME_bg.bin` (1 byte)
 * `NAME.fli` / `.afl` / `.ifl`: one contiguous image with load address `$3C00`, same layout as the table above.
 
 These layouts are FlipperJ’s own; they are not guaranteed to match FLI Graph, Gunpaint or other editors.
@@ -140,6 +140,24 @@ These layouts are FlipperJ’s own; they are not guaranteed to match FLI Graph, 
 
 *Edit ▸ Undo* (Ctrl+Z / ⌘Z) and *Redo* (Ctrl+Y / ⇧⌘Z) for every setting and the frame, up to 100 steps
 (C64GfxLib `UndoHistory`). Loading a picture starts a new history.
+
+## Projects
+
+*File ▸ Save project* (Ctrl+S / ⌘S) stores the picture with all settings in
+`Projects/<picture name>/` – next to the program if that folder is writable, otherwise in `Documents/FlipperJ/`. The folder
+names follow the program language (an existing folder in another language is reused):
+
+```
+Projects/sunset/
+  sunset.flipperj      settings as key=value text
+  import/sunset.png     copy of the picture
+  export/               all results, written anew on every save (.prg, .png preview, raw data)
+```
+
+The File menu has New, Open picture, Open project, Open recent (10), Save as, Close project and Open project folder.
+The title shows "•" while there are unsaved changes; closing, quitting or opening something else asks first
+(C64GfxLib `ProjectSession`).
+Convert is on Ctrl+Enter / ⌘Enter.
 
 ## User guide
 
@@ -177,11 +195,11 @@ The leaping-dolphin icon (C64 cyan on C64 blue) lives in `src/main/resources/de/
 window, taskbar/dock and About box). `packaging/` holds the SVG source, a 512 px PNG and a Windows `.ico`,
 e.g. for `jpackage --icon packaging/flipperj.ico`.
 
-## License
+## Licence
 
 FlipperJ may be used, copied, changed and passed on for **noncommercial purposes only**, under the
 [PolyForm Noncommercial License 1.0.0](LICENSE). For commercial use ask nanzee73 for permission.
-Parts by others keep their own licenses, see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+Parts by others keep their own licences, see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 ## Project layout
 

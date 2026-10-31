@@ -64,7 +64,7 @@ public final class FliConverter {
         int n = s.dither() == Dither.NONE ? 1 : Math.max(1, passes);
         for (int pass = 0; pass < n; pass++) {
             if (p.cancelled()) break;
-            p.update("Selecting colors (pass " + (pass + 1) + "/" + n + ")", p0 + (p1 - p0) * pass / n);
+            p.update("Selecting colours (pass " + (pass + 1) + "/" + n + ")", p0 + (p1 - p0) * pass / n);
             float[] et = m.errorTable(target);
             int bg = fixedBg >= 0 ? fixedBg : chooseBackgroundMc(et, s.renderBug(), fixedCram);
             int[] cram = new int[1000];
@@ -226,7 +226,7 @@ public final class FliConverter {
         int n = s.dither() == Dither.NONE ? 1 : Math.max(1, passes);
         for (int pass = 0; pass < n; pass++) {
             if (p.cancelled()) break;
-            p.update("Selecting colors (pass " + (pass + 1) + "/" + n + ")", (double) pass / n);
+            p.update("Selecting colours (pass " + (pass + 1) + "/" + n + ")", (double) pass / n);
             float[] et = m.errorTable(target);
             int[] fg = new int[200 * 40], bk = new int[200 * 40];
             IntStream.range(0, 200 * 40).parallel().forEach(k -> {

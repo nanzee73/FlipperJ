@@ -11,10 +11,11 @@ C64 program (.prg) and/or as raw data. Everything you change is shown at once in
 <li><a href="#crop">Crop &amp; scale</a></li>
 <li><a href="#source">Source palette &amp; matching</a></li>
 <li><a href="#prepare">Prepare (contrast, brightness, gamma, saturation)</a></li>
-<li><a href="#dither">Dithering &amp; color selection</a></li>
+<li><a href="#dither">Dithering &amp; colour selection</a></li>
 <li><a href="#dest">Destination palette</a></li>
 <li><a href="#preview">Previews, zoom and pan</a></li>
 <li><a href="#output">Output: .prg and raw data</a></li>
+<li><a href="#projects">Projects</a></li>
 <li><a href="#settings">Settings and language</a></li>
 <li><a href="#testpic">FLI test picture for VICE</a></li>
 <li><a href="#cli">Command line</a></li>
@@ -33,13 +34,13 @@ C64 program (.prg) and/or as raw data. Everything you change is shown at once in
 
 <a name="modes"></a><h2>FLI, AFLI and IFLI</h2>
 <table border="1" cellspacing="0">
-<tr><th>Mode</th><th>Resolution</th><th>Colors</th></tr>
-<tr><td>FLI (multicolor)</td><td>160×200, double-wide pixels</td><td>Per 4×8 cell: one color from the color RAM, plus two colors per cell <i>and pixel line</i>, plus one background color for the whole picture.</td></tr>
-<tr><td>AFLI (hires FLI)</td><td>320×200</td><td>Per 8×1 cell (one cell, one pixel line): two colors.</td></tr>
-<tr><td>IFLI (multicolor interlace)</td><td>"virtually" 320×200</td><td>Two FLI pictures shown alternately every frame, the second one shifted by one pixel. The eye mixes them into more colors and finer detail. On a real monitor it flickers slightly.</td></tr>
+<tr><th>Mode</th><th>Resolution</th><th>Colours</th></tr>
+<tr><td>FLI (multicolour)</td><td>160×200, double-wide pixels</td><td>Per 4×8 cell: one colour from the colour RAM, plus two colours per cell <i>and pixel line</i>, plus one background colour for the whole picture.</td></tr>
+<tr><td>AFLI (hires FLI)</td><td>320×200</td><td>Per 8×1 cell (one cell, one pixel line): two colours.</td></tr>
+<tr><td>IFLI (multicolour interlace)</td><td>"virtually" 320×200</td><td>Two FLI pictures shown alternately every frame, the second one shifted by one pixel. The eye mixes them into more colours and finer detail. On a real monitor it flickers slightly.</td></tr>
 </table>
 <p><b>The FLI bug:</b> on a real C64 the leftmost three character columns (24 pixels) of every FLI line cannot show
-the picture's colors. FlipperJ knows this and only uses the background color there. With <b>Render FLI bug</b>
+the picture's colours. FlipperJ knows this and only uses the background colour there. With <b>Render FLI bug</b>
 you see these columns as the C64 shows them.</p>
 <p>Entries marked "planned" in the mode list are not available yet.</p>
 
@@ -55,7 +56,7 @@ When you open a new picture, the output file name follows it (same name, .prg).<
 <p>Pictures that are not C64-sized open this dialog. You can open it again any time with <b>Crop / scale…</b> (bottom) or <b>File ▸ Crop / scale…</b>.</p>
 <ul>
 <li><b>Frame:</b> drag inside the frame to move it, drag the corner handle to resize it, drag outside to draw a new frame.
-The fields X, Y, Width and Height set it exactly. <b>Whole image</b> and <b>Max. centered frame</b> are shortcuts.</li>
+The fields X, Y, Width and Height set it exactly. <b>Whole image</b> and <b>Max. centred frame</b> are shortcuts.</li>
 <li><b>Display aspect:</b> the shape of the final picture. <i>C64 PAL</i> (about 1.50:1) is right for a PAL monitor,
 <i>Square pixels</i> (1.60:1) keeps the picture exactly as on the PC, <i>NTSC</i> (about 1.20:1), <i>Free</i> = no rule.
 <b>Lock crop to target aspect</b> keeps the frame in that shape.</li>
@@ -63,34 +64,34 @@ The fields X, Y, Width and Height set it exactly. <b>Whole image</b> and <b>Max.
 <i>Fill (crop)</i> fills the screen and cuts off what sticks out, <i>1:1</i> takes exactly 320×200 pixels without scaling.</li>
 <li><b>Filter:</b> how pixels are recalculated. <i>Area average (smooth)</i> is smooth and best for photos, <i>Nearest neighbour</i>
 keeps hard pixel edges (pixel art).</li>
-<li><b>Border color…:</b> color of the borders added by <i>Fit</i>.</li>
+<li><b>Border colour…:</b> colour of the borders added by <i>Fit</i>.</li>
 </ul>
 <p><b>Reframe in the preview:</b> right-click the left preview (or <b>File ▸ Reframe in preview</b>) to choose another
 part of the original directly there: mouse wheel = size, drag with the left button = move, right-click or Enter = apply,
 Esc = cancel. The whole original is kept, so you can reframe as often as you like.</p>
 
 <a name="source"></a><h2>Source palette &amp; matching</h2>
-<p>The <b>source palette</b> tells FlipperJ which RGB colors the 16 C64 colors have when it compares them with your
+<p>The <b>source palette</b> tells FlipperJ which RGB colours the 16 C64 colours have when it compares them with your
 picture. Pepto and Colodore are measured from real C64s; others (DeeKay, PALette, Community Colors, …) are popular
-alternatives. <b>Custom…</b> opens the palette editor: change single colors, load .vpl, .gpl or hex files, save as .vpl.</p>
+alternatives. <b>Custom…</b> opens the palette editor: change single colours, load .vpl, .gpl or hex files, save as .vpl.</p>
 <p><b>Match in</b> sets how "similar" is measured:</p>
 <ul>
-<li><b>YUV</b> (default): separates brightness from color, like a TV. <b>Weight U</b> and <b>Weight V</b> decide how much
-the color differences count compared with brightness (50 = normal). Lower values = brightness matters more.</li>
+<li><b>YUV</b> (default): separates brightness from colour, like a TV. <b>Weight U</b> and <b>Weight V</b> decide how much
+the colour differences count compared with brightness (50 = normal). Lower values = brightness matters more.</li>
 <li><b>RGB:</b> RGB distance weighted by how bright each channel looks.</li>
 <li><b>HSL:</b> hue, saturation and lightness.</li>
 </ul>
-<p><b>Respect luma ramp:</b> additionally punishes colors that are too bright or too dark. Helps to keep gradients
+<p><b>Respect luma ramp:</b> additionally punishes colours that are too bright or too dark. Helps to keep gradients
 and faces in the right order of brightness.</p>
 
 <a name="prepare"></a><h2>Prepare</h2>
 <p>These sliders change the picture <i>before</i> the conversion (see the <b>Pre-convert</b> view):
 <b>Contrast</b> and <b>Brightness</b> (-100 to 100), <b>Gamma %</b> (below 100 = brighter middle tones,
-above 100 = darker) and <b>Saturation %</b> (0 = grey, above 100 = more colorful). The C64 has few dark and few
-saturated colors, so a little more contrast and saturation often helps.</p>
+above 100 = darker) and <b>Saturation %</b> (0 = grey, above 100 = more colourful). The C64 has few dark and few
+saturated colours, so a little more contrast and saturation often helps.</p>
 
-<a name="dither"></a><h2>Dithering &amp; color selection</h2>
-<p>Dithering mixes C64 colors in fine patterns so that the eye sees the colors in between.</p>
+<a name="dither"></a><h2>Dithering &amp; colour selection</h2>
+<p>Dithering mixes C64 colours in fine patterns so that the eye sees the colours in between.</p>
 <ul>
 <li><b>Dither:</b> <i>None</i> = flat areas. <i>Floyd-Steinberg, Atkinson, Jarvis-Judice-Ninke, Stucki, Sierra Lite</i>
 spread the error to neighbouring pixels (natural, grainy look; Atkinson is lighter and more contrasty).
@@ -99,9 +100,9 @@ spread the error to neighbouring pixels (natural, grainy look; Atkinson is light
 <li><b>Bleeding:</b> on = the dither error may run into the neighbouring cells (smoother transitions);
 off = every cell is dithered on its own (cleaner cell edges).</li>
 <li><b>Serpentine:</b> scans every second line from right to left. Avoids diagonal "worm" patterns.</li>
-<li><b>Passes:</b> after the first run, FlipperJ chooses the colors of each cell again from what the dithering
+<li><b>Passes:</b> after the first run, FlipperJ chooses the colours of each cell again from what the dithering
 "wanted" and keeps the best run. More passes = better, but slower.</li>
-<li><b>Background:</b> the one color all cells share. <i>Auto</i> picks the best one; or choose a fixed color.</li>
+<li><b>Background:</b> the one colour all cells share. <i>Auto</i> picks the best one; or choose a fixed colour.</li>
 </ul>
 <p>Every group has a <b>Defaults</b> button. Sliders: the small arrows move by 1 (hold to repeat), the mark shows the
 default value and the knob snaps to it, a double click resets the slider.</p>
@@ -132,22 +133,34 @@ monitor or emulator. It does not change the C64 data.</p>
 <li><b>Write runnable .prg:</b> picture plus displayer in one file. Start with <code>RUN</code> or <code>SYS 2061</code>.</li>
 <li><b>Write raw data:</b> for your own demo or display code. Per frame (IFLI: suffix _a and _b):
 <code>NAME_bitmap.bin</code> (8000 bytes), <code>NAME_screens.bin</code> (8×1024 bytes, picture line y uses
-screen y AND 7), <code>NAME_colorram.bin</code> (1000 bytes, multicolor) and <code>NAME_bg.bin</code> (1 byte),
+screen y AND 7), <code>NAME_colorram.bin</code> (1000 bytes, multicolour) and <code>NAME_bg.bin</code> (1 byte),
 plus one combined file <code>NAME.fli / .afl / .ifl</code> with load address $3C00
-(color RAM $3C00, background $3FF0/$3FF1, screens $4000, bitmap $6000, IFLI frame B from $8000).
+(colour RAM $3C00, background $3FF0/$3FF1, screens $4000, bitmap $6000, IFLI frame B from $8000).
 FlipperJ and MuleJ can open these combined files again.</li>
 </ul>
 <table border="1" cellspacing="0">
 <tr><th>Memory map of the .prg</th><th></th></tr>
 <tr><td>$0801</td><td>BASIC line SYS 2061</td></tr>
 <tr><td>$0900–$0BFF</td><td>tables and displayer code</td></tr>
-<tr><td>$3C00–$3FE7</td><td>color RAM data (copied to $D800)</td></tr>
+<tr><td>$3C00–$3FE7</td><td>colour RAM data (copied to $D800)</td></tr>
 <tr><td>$4000–$5FFF</td><td>8 screens</td></tr>
 <tr><td>$6000–$7F3F</td><td>bitmap</td></tr>
 <tr><td>$8000–$BF3F</td><td>IFLI only: frame B, copied to $C000 at start</td></tr>
 </table>
-<p>Lines 197–199 of an FLI picture cannot get their own colors (no bad lines are possible there); they repeat the
-colors of line 196. FlipperJ takes this into account.</p>
+<p>Lines 197–199 of an FLI picture cannot get their own colours (no bad lines are possible there); they repeat the
+colours of line 196. FlipperJ takes this into account.</p>
+
+<a name="projects"></a><h2>Projects</h2>
+<p>A <b>project</b> keeps a picture together with all settings and edits, so you can carry on later.
+<b>File ▸ Save project</b> (Ctrl+S, on macOS ⌘S) creates a folder named after the picture in <i>Projects</i> – next to
+the program if that folder can be written to, otherwise in <i>Documents/FlipperJ</i>. Inside are the project file
+(<i>name.flipperj</i>), <i>import/</i> with a copy of the picture and <i>export/</i> with all results, written anew on every
+save. If a folder with that name already exists, “name (2)” is used.</p>
+<p>The File menu also has <b>New</b> (Ctrl+N), <b>Open picture</b> (Ctrl+O), <b>Open project</b> (Ctrl+Shift+O),
+<b>Open recent</b> (the last 10 projects), <b>Save as</b> (Ctrl+Shift+S), <b>Close project</b> (Ctrl+W) and <b>Open
+project folder</b>. While there are unsaved changes the title shows a “•”; before they would be lost (closing, quitting,
+opening another picture or project) the program asks whether to save.</p>
+<p><b>Convert</b> has the shortcut Ctrl+Enter (on macOS ⌘Enter); Ctrl+S saves the project.</p>
 
 <a name="settings"></a><h2>Settings and language</h2>
 <p><b>File ▸ Settings…</b> (on macOS: <b>FlipperJ ▸ Settings…</b>): language, live preview at start, grid, linked
@@ -165,12 +178,12 @@ slider counts as one step. Loading a new picture starts a new history.</p>
 Load it in VICE (PAL) or on a real C64 and compare:</p>
 <ul>
 <li>Left 3 columns (FLI bug): line 0 black, all other lines light grey.</li>
-<li>Color bar: every line its own color, repeating every 15 lines without gaps or doubled lines.</li>
+<li>Colour bar: every line its own colour, repeating every 15 lines without gaps or doubled lines.</li>
 <li>Barcode: the line number in binary, white = 1, dark grey = 0.</li>
 <li>Right area: line 0 white, the first line of every character row red, line 196 yellow, the rest blue.
 Lines 197–199 repeat line 196.</li>
 </ul>
-<p>A line with the colors of its neighbour points to a timing problem of the displayer – please report it.</p>
+<p>A line with the colours of its neighbour points to a timing problem of the displayer – please report it.</p>
 
 <a name="cli"></a><h2>Command line</h2>
 <p>With arguments FlipperJ runs without a window:</p>

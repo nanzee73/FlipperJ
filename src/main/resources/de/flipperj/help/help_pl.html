@@ -15,6 +15,7 @@ program C64 (.prg) i/lub jako surowe dane. Każdą zmianę od razu widać w podg
 <li><a href="#dest">Paleta docelowa</a></li>
 <li><a href="#preview">Podgląd, powiększanie i przesuwanie</a></li>
 <li><a href="#output">Wyjście: .prg i surowe dane</a></li>
+<li><a href="#projects">Projekty</a></li>
 <li><a href="#settings">Ustawienia i język</a></li>
 <li><a href="#testpic">Obraz testowy FLI dla VICE</a></li>
 <li><a href="#cli">Wiersz poleceń</a></li>
@@ -151,6 +152,18 @@ FlipperJ i MuleJ potrafią ponownie otworzyć te pliki zbiorcze.</li>
 </table>
 <p>Linie 197–199 obrazu FLI nie mogą mieć własnych kolorów (nie są tam możliwe badlines); powtarzają kolory linii 196.
 FlipperJ to uwzględnia.</p>
+
+<a name="projects"></a><h2>Projekty</h2>
+<p><b>Projekt</b> przechowuje obraz razem ze wszystkimi ustawieniami i edycjami, aby można było później
+kontynuować. <b>Plik ▸ Zapisz projekt</b> (Ctrl+S, w macOS ⌘S) tworzy w <i>Projekty</i> folder o nazwie obrazu – obok
+programu, jeśli można tam zapisywać, w przeciwnym razie w <i>Dokumenty/FlipperJ</i>. W nim znajdują się plik projektu
+(<i>nazwa.flipperj</i>), <i>import/</i> z kopią obrazu i <i>eksport/</i> ze wszystkimi wynikami, zapisywanymi od nowa przy
+każdym zapisie. Jeśli folder już istnieje, używana jest nazwa „nazwa (2)”.</p>
+<p>Menu Plik zawiera też <b>Nowy</b> (Ctrl+N), <b>Otwórz obraz</b> (Ctrl+O), <b>Otwórz projekt</b> (Ctrl+Shift+O),
+<b>Ostatnio otwierane</b> (10 ostatnich projektów), <b>Zapisz jako</b> (Ctrl+Shift+S), <b>Zamknij projekt</b> (Ctrl+W)
+i <b>Otwórz folder projektu</b>. Gdy są niezapisane zmiany, tytuł pokazuje „•”; zanim zostałyby utracone (zamknięcie,
+wyjście, otwarcie innego obrazu lub projektu), program pyta, czy zapisać.</p>
+<p><b>Konwertuj</b> ma skrót Ctrl+Enter (w macOS ⌘Enter); Ctrl+S zapisuje projekt.</p>
 
 <a name="settings"></a><h2>Ustawienia i język</h2>
 <p><b>Plik ▸ Ustawienia…</b> (w macOS: <b>FlipperJ ▸ Ustawienia…</b>): język, podgląd na żywo przy starcie, siatka,

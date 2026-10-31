@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 
 import de.c64gfx.swing.UndoHistory;
+import de.c64gfx.swing.ProjectFile;
+import de.c64gfx.swing.ProjectFolders;
+import de.c64gfx.swing.ProjectSession;
 
 import de.c64gfx.swing.HelpDialog;
 
@@ -107,6 +110,10 @@ public class MainWindow extends JFrame {
     private ImageFitter.Settings fitSettings = ImageFitter.Settings.defaults();
     /** Undo / redo of all settings and of the frame (not of loading a picture). */
     private final UndoHistory history = new UndoHistory(this::captureState, this::restoreState);
+    /** The project: File menu, saving, unsaved marker and question. */
+    private final ProjectSession session;
+    /** Results still to be written to the project's Export folder once the conversion is done. */
+    private File pendingExport;
     private ImageFitter.Settings reframeBackup;
     private float[] preConverted;
     private ConversionResult result;
@@ -125,8 +132,10 @@ public class MainWindow extends JFrame {
     private long resultGeneration = -1;
 
     public MainWindow() {
-        I18n.bind(() -> setTitle(tr("app.title", App.VERSION)));
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        session = new ProjectSession(this, "flipperj", history, new ProjectHandler());
+        session.setStatus(msg -> { statusText = () -> msg; status.setText(msg); });
+        session.addListener(this::updateTitle);
+        I18n.bind(this::updateTitle);
         setIconImages(Icons.appIcons());
         for (Palette p : Palettes.builtIns()) { sourceModel.addElement(p); destModel.addElement(p); }
         for (int i = -1; i < 16; i++) backgroundBox.addItem(i);
@@ -180,9 +189,7 @@ public class MainWindow extends JFrame {
     private JMenuBar buildMenu() {
         int mask = Platform.menuShortcutMask();
         JMenuBar bar = new JMenuBar();
-        JMenu file = I18n.text(new JMenu(), "menu.file");
         JMenuItem open = I18n.text(new JMenuItem(), "menu.file.open");
-        open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, mask));
         open.addActionListener(e -> chooseInput());
         JMenuItem crop = I18n.text(new JMenuItem(), "menu.file.crop");
         crop.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_K, mask));
@@ -191,26 +198,16 @@ public class MainWindow extends JFrame {
         reframe.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, mask));
         reframe.addActionListener(e -> startReframe());
         JMenuItem convert = I18n.text(new JMenuItem(), "bottom.convert");
-        convert.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, mask));
+        convert.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, mask));   // Ctrl+S is "Save project"
         convert.addActionListener(e -> convertOrCancel());
-        file.add(open);
-        file.add(crop);
-        file.add(reframe);
-        file.addSeparator();
-        file.add(convert);
+        JMenuItem options = null;
         if (!Platform.IS_MAC) {
             // on macOS, Settings and Quit live in the application menu (see App)
-            JMenuItem options = I18n.text(new JMenuItem(), "menu.file.settings");
+            options = I18n.text(new JMenuItem(), "menu.file.settings");
             options.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_COMMA, mask));
             options.addActionListener(e -> showOptions());
-            JMenuItem exit = I18n.text(new JMenuItem(), "menu.file.exit");
-            exit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, mask));
-            exit.addActionListener(e -> dispose());
-            file.addSeparator();
-            file.add(options);
-            file.addSeparator();
-            file.add(exit);
         }
+        JMenu file = session.fileMenu(open, java.util.Arrays.asList(crop, reframe, null, convert), options);
 
         JMenu language = I18n.text(new JMenu(), "menu.language");
         ButtonGroup lg = new ButtonGroup();
@@ -754,6 +751,7 @@ public class MainWindow extends JFrame {
                     result = get();
                     resultGeneration = gen;
                     updateRight();
+                    if (pendingExport != null && resultGeneration == settingsGeneration) writePendingExport();
                     setStatus("status.previewReady",
                             (System.currentTimeMillis() - t0) / 1000.0, result.meanError(cs.sourcePalette()));
                 } catch (Exception ex) {
@@ -819,27 +817,37 @@ public class MainWindow extends JFrame {
      * Loads a picture. Pictures that are not C64-sized open the crop & scale dialog first;
      * nothing is converted or shown before it is confirmed, and cancelling keeps the previous picture.
      */
+    /** Opens a picture chosen by the user: asks about unsaved changes, starts a new project. */
     private void loadInput(File f) {
+        if (!session.confirmDiscard()) return;
+        if (loadPicture(f, null)) session.pictureLoaded();
+    }
+
+    /**
+     * Loads a picture. Pictures that are not C64-sized open the crop &amp; scale dialog first, unless the frame is
+     * given (project). Returns false if nothing was loaded.
+     */
+    private boolean loadPicture(File f, ImageFitter.Settings frame) {
         BufferedImage img;
         try {
             // C64 pictures (Koala, FLI, Gunpaint, …) are drawn with the selected source palette
             img = de.c64gfx.swing.Images.read(f, (Palette) sourcePalette.getSelectedItem());
         } catch (Exception ex) {
             error(tr("err.read", ex.getMessage()));
-            return;
+            return false;
         }
         if (img == null) {
             error(tr("err.unsupported", f.getName()));
-            return;
+            return false;
         }
         FileDialogs.rememberDir("input", f);
-        ImageFitter.Settings fs = ImageFitter.Settings.defaults();
-        if (!ImageFitter.isNativeSize(img)) {
+        ImageFitter.Settings fs = frame != null ? frame : ImageFitter.Settings.defaults();
+        if (frame == null && !ImageFitter.isNativeSize(img)) {
             CropScaleDialog d = new CropScaleDialog(this, img, fs);
             d.setVisible(true);
             if (!d.isAccepted()) {
                 setStatus("status.loadCancelled");
-                return;
+                return false;
             }
             fs = d.getSettings();
         }
@@ -856,6 +864,7 @@ public class MainWindow extends JFrame {
         applyFit();
         history.reset();                                      // a new picture starts a new history
         if (!livePreview.isSelected()) setStatus("status.loaded", f.getName(), img.getWidth(), img.getHeight());
+        return true;
     }
 
     private void openCropDialog() {
@@ -930,6 +939,165 @@ public class MainWindow extends JFrame {
         double a = palAspect.isSelected() ? ImageFitter.Aspect.PAL.ratio : 1.6;
         leftPanel.setDisplayAspect(a);
         rightPanel.setDisplayAspect(a);
+    }
+
+    // ------------------------------------------------------------------ project
+
+    private void updateTitle() {
+        setTitle(tr("app.title", App.VERSION) + (session != null ? session.titleSuffix() : ""));
+    }
+
+    /** macOS "Quit" (⌘Q): asks about unsaved changes; false keeps the program running. */
+    public boolean requestQuit() {
+        if (!session.confirmDiscard()) return false;
+        dispose();
+        return true;
+    }
+
+    private File inputFile() { return new File(inputField.getText().trim()); }
+
+    /** Writes .prg, raw data and PNG of the current result to the Export folder, converting first if needed. */
+    private void exportProject(File exportDir) {
+        pendingExport = exportDir;
+        if (result != null && resultGeneration == settingsGeneration) writePendingExport();
+        else if (!isConverting()) convertOrCancel();          // writePendingExport() follows when it is done
+    }
+
+    private void writePendingExport() {
+        File dir = pendingExport;
+        if (dir == null || result == null) return;
+        pendingExport = null;
+        try {
+            dir.mkdirs();
+            String base = dir.getParentFile().getName();
+            Files.write(new File(dir, base + ".prg").toPath(), PrgBuilder.build(result));
+            RawExporter.export(result, dir.toPath(), base);
+            ImageIO.write(result.render((Palette) destPalette.getSelectedItem()), "png", new File(dir, base + ".png"));
+        } catch (Exception ex) {
+            error(tr("err.write", ex.getMessage()));
+        }
+    }
+
+    /** Project files: settings as text, picture copied to Import/, results in Export/. */
+    private final class ProjectHandler implements ProjectSession.Handler {
+        @Override public boolean hasPicture() { return source != null; }
+
+        @Override public String pictureName() { return inputFile().getName(); }
+
+        @Override public void write(ProjectFile p, File dir) throws java.io.IOException {
+            File pic = inputFile();
+            File imp = ProjectFolders.importDir(dir);
+            imp.mkdirs();
+            File copy = new File(imp, pic.getName());
+            if (!pic.getAbsoluteFile().equals(copy.getAbsoluteFile()))
+                Files.copy(pic.toPath(), copy.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            p.put("picture", imp.getName() + "/" + pic.getName());
+            history.commit();
+            for (Map.Entry<String, Object> e : captureState().entrySet()) p.put(e.getKey(), encode(e.getValue()));
+            inputField.setText(copy.getPath());              // the project uses its own copy from now on
+            File exp = ProjectFolders.exportDir(dir);
+            outputField.setText(new File(exp, dir.getName() + ".prg").getPath());
+            exportProject(exp);
+        }
+
+        @Override public void read(ProjectFile p, File dir) throws java.io.IOException {
+            String pic = p.get("picture", null);
+            File f = pic == null ? null : new File(dir, pic);
+            if (f == null || !f.isFile()) throw new java.io.IOException(tr("project.error.picture", f == null ? "?" : f.getPath()));
+            Map<String, Object> m = decode(p);
+            sourcePalette.setSelectedItem(m.get("src.title"));    // C64 pictures are drawn with it
+            if (leftPanel.isCropMode()) leftPanel.cancelCrop();
+            if (!loadPicture(f, (ImageFitter.Settings) m.get("menu.file.crop")))
+                throw new java.io.IOException(f.getPath());
+            restoreState(m);
+            outputField.setText(new File(ProjectFolders.exportDir(dir), dir.getName() + ".prg").getPath());
+        }
+
+        @Override public void clear() {
+            if (leftPanel.isCropMode()) leftPanel.cancelCrop();
+            cancelLivePreview();
+            source = null;
+            fitted = null;
+            preConverted = null;
+            result = null;
+            resultGeneration = -1;
+            pendingExport = null;
+            fitSettings = ImageFitter.Settings.defaults();
+            inputField.setText("");
+            outputField.setText("");
+            leftPanel.setImage(null);
+            rightPanel.setImage(null);
+            modeButtons[0].setSelected(true);
+            resetSource();
+            resetDither();
+            resetDestination();
+            setStatus("status.new");
+        }
+    }
+
+    /** A setting as text for the project file. */
+    private static String encode(Object v) {
+        if (v instanceof Palette p) {
+            StringBuilder sb = new StringBuilder(p.name()).append('|');
+            for (int i = 0; i < 16; i++) sb.append(i > 0 ? "," : "").append(String.format("%06X", p.rgb(i)));
+            return sb.toString();
+        }
+        if (v instanceof ImageFitter.Settings f) {
+            Rectangle c = f.crop();
+            return (c == null ? "" : c.x + "," + c.y + "," + c.width + "," + c.height) + ";" + f.mode().name() + ";"
+                    + f.filter().name() + ";" + f.aspect().name() + ";" + String.format("%06X", f.fill().getRGB() & 0xFFFFFF);
+        }
+        return v instanceof Enum<?> e ? e.name() : String.valueOf(v);
+    }
+
+    /** Settings from a project file; missing or broken entries keep the current value. */
+    private Map<String, Object> decode(ProjectFile p) {
+        Map<String, Object> m = captureState();
+        for (Map.Entry<String, Object> e : m.entrySet()) {
+            String k = e.getKey();
+            if (!p.has(k)) continue;
+            Object cur = e.getValue();
+            String t = p.get(k, "");
+            try {
+                if (cur instanceof Integer) e.setValue(p.getInt(k, (Integer) cur));
+                else if (cur instanceof Boolean) e.setValue(p.getBool(k, (Boolean) cur));
+                else if (cur instanceof Enum<?> en) e.setValue(Enum.valueOf(en.getDeclaringClass(), t.trim()));
+                else if (cur instanceof Palette) e.setValue(palette(t));
+                else if (cur instanceof ImageFitter.Settings) e.setValue(frame(t));
+                else e.setValue(t);
+            } catch (RuntimeException ignored) {
+                // keep the current value
+            }
+        }
+        return m;
+    }
+
+    /** Palette from "name|RRGGBB,…": a built-in or known one with the same colours, otherwise added to the lists. */
+    private Palette palette(String t) {
+        String[] parts = t.split("\\|", 2);
+        String[] hex = parts[1].split(",");
+        int[] rgb = new int[16];
+        for (int i = 0; i < 16; i++) rgb[i] = Integer.parseInt(hex[i].trim(), 16);
+        for (int i = 0; i < sourceModel.getSize(); i++) {
+            Palette p = sourceModel.getElementAt(i);
+            if (p.name().equals(parts[0]) && java.util.Arrays.equals(p.toArray(), rgb)) return p;
+        }
+        Palette p = new Palette(parts[0], rgb);
+        sourceModel.addElement(p);
+        destModel.addElement(p);
+        return p;
+    }
+
+    private static ImageFitter.Settings frame(String t) {
+        String[] f = t.split(";", -1);
+        Rectangle crop = null;
+        if (!f[0].isBlank()) {
+            String[] c = f[0].split(",");
+            crop = new Rectangle(Integer.parseInt(c[0].trim()), Integer.parseInt(c[1].trim()),
+                    Integer.parseInt(c[2].trim()), Integer.parseInt(c[3].trim()));
+        }
+        return new ImageFitter.Settings(crop, ImageFitter.ScaleMode.valueOf(f[1]), ImageFitter.Filter.valueOf(f[2]),
+                ImageFitter.Aspect.valueOf(f[3]), new Color(Integer.parseInt(f[4], 16)));
     }
 
     // ------------------------------------------------------------------ undo
@@ -1027,6 +1195,7 @@ public class MainWindow extends JFrame {
             // the live preview is up to date: just write the files
             try {
                 String written = writeOutputs();
+                writePendingExport();
                 if (written.isEmpty()) setStatus("status.nothing");
                 else setStatus("status.saved", written);
             } catch (Exception ex) {
@@ -1066,6 +1235,7 @@ public class MainWindow extends JFrame {
                     showResult.setSelected(true);
                     updateRight();
                     String written = writeOutputs();
+                    writePendingExport();
                     double secs = (System.currentTimeMillis() - t0) / 1000.0, err = result.meanError(cs.sourcePalette());
                     statusText = () -> tr("status.converted", secs, err)
                             + (written.isEmpty() ? "" : " – " + tr("status.saved", written));
