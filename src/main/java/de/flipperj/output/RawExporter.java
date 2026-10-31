@@ -25,6 +25,10 @@ public final class RawExporter {
 
     public static List<Path> export(ConversionResult r, Path dir, String baseName) throws IOException {
         List<Path> written = new ArrayList<>();
+        if (r.mode.underlay) {                                // NUFLI / MUFLI / MUIFLI: the editor file
+            written.add(write(dir.resolve(baseName + "." + r.mode.rawExtension), r.editorFile));
+            return written;
+        }
         for (int i = 0; i < r.frames.size(); i++) {
             FliFrame f = r.frames.get(i);
             String n = baseName + (r.frames.size() > 1 ? (i == 0 ? "_a" : "_b") : "");

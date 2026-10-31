@@ -13,14 +13,27 @@ public final class ConversionResult {
     /** Target (pre-converted picture), 320×200 RGB floats. */
     public final float[] target;
     private final int[][] indices;
+    /** NUFLI / MUFLI / MUIFLI: the editor file (frames is empty then). */
+    public final byte[] editorFile;
 
     public ConversionResult(FliMode mode, List<FliFrame> frames, boolean renderBug, float[] target) {
         this.mode = mode;
         this.frames = frames;
         this.renderBug = renderBug;
         this.target = target;
+        this.editorFile = null;
         this.indices = new int[frames.size()][];
         for (int i = 0; i < frames.size(); i++) indices[i] = VicRenderer.render(frames.get(i), mode.multicolor, renderBug);
+    }
+
+    /** Sprite underlay modes: the editor file and the palette indices it shows per frame (320×200). */
+    public ConversionResult(FliMode mode, byte[] editorFile, int[][] indices, float[] target) {
+        this.mode = mode;
+        this.frames = List.of();
+        this.renderBug = true;
+        this.target = target;
+        this.editorFile = editorFile;
+        this.indices = indices;
     }
 
     /** Perceived RGB per pixel (320×200) with the given palette. Interlaced frames are averaged. */
@@ -32,8 +45,9 @@ public final class ConversionResult {
                 if (!mode.interlaced) {
                     out[y * 320 + x] = pal.rgb(a);
                 } else {
-                    // frame B is shifted right by one hires pixel ($D016 XSCROLL=1)
-                    int b = x == 0 ? frames.get(1).background & 15 : colorIndex(1, x - 1, y);
+                    // IFLI: frame B is shifted right by one hires pixel ($D016 XSCROLL=1)
+                    int b = !mode.shiftedSecondFrame() ? colorIndex(1, x, y)
+                            : x == 0 ? frames.get(1).background & 15 : colorIndex(1, x - 1, y);
                     int r = (pal.r(a) + pal.r(b)) / 2, g = (pal.g(a) + pal.g(b)) / 2, bl = (pal.b(a) + pal.b(b)) / 2;
                     out[y * 320 + x] = (r << 16) | (g << 8) | bl;
                 }

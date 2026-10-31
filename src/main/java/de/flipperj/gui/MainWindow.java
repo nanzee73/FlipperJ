@@ -337,12 +337,6 @@ public class MainWindow extends JFrame {
             g.add(b);
             p.add(b);
         }
-        for (String planned : new String[]{"NUFLI", "MUIFLI"}) {
-            JRadioButton b = new JRadioButton(planned);
-            b.setEnabled(false);
-            I18n.tip(b, "mode.planned");
-            p.add(b);
-        }
         return p;
     }
 
@@ -708,10 +702,19 @@ public class MainWindow extends JFrame {
     /** Marks the current result as outdated and schedules a live preview. */
     private void settingsChanged() {
         settingsGeneration++;
+        updateModeControls();
         if (livePreview.isSelected() && preConverted != null) {
             liveTimer.restart();
             setStatus("status.updating");
         }
+    }
+
+    /** NUFLI / MUFLI / MUIFLI: no background colour, FLI bug always as the editors show it, editor file instead of raw data. */
+    private void updateModeControls() {
+        boolean classic = !selectedMode().underlay;
+        backgroundBox.setEnabled(classic);
+        renderBug.setEnabled(classic);
+        writeRaw.setEnabled(classic);
     }
 
     private void cancelLivePreview() {
@@ -970,7 +973,7 @@ public class MainWindow extends JFrame {
         try {
             dir.mkdirs();
             String base = dir.getParentFile().getName();
-            Files.write(new File(dir, base + ".prg").toPath(), PrgBuilder.build(result));
+            if (PrgBuilder.supports(result.mode)) Files.write(new File(dir, base + ".prg").toPath(), PrgBuilder.build(result));
             RawExporter.export(result, dir.toPath(), base);
             ImageIO.write(result.render((Palette) destPalette.getSelectedItem()), "png", new File(dir, base + ".png"));
         } catch (Exception ex) {
@@ -1256,6 +1259,12 @@ public class MainWindow extends JFrame {
         if (out.isEmpty() || (!writePrg.isSelected() && !writeRaw.isSelected())) return "";
         Path prgPath = Path.of(out);
         StringBuilder sb = new StringBuilder();
+        if (!PrgBuilder.supports(result.mode)) {             // NUFLI / MUFLI / MUIFLI: editor file only, for now
+            Path dir = prgPath.toAbsolutePath().getParent();
+            String base = prgPath.getFileName().toString().replaceFirst("\\.[^.]+$", "");
+            Path p = RawExporter.export(result, dir, base).get(0);
+            return p.getFileName().toString();
+        }
         if (writePrg.isSelected()) {
             Files.write(prgPath, PrgBuilder.build(result));
             sb.append(prgPath.getFileName());

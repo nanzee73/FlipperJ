@@ -41,7 +41,11 @@ public final class PrgBuilder {
 
     private PrgBuilder() {}
 
+    /** NUFLI, MUFLI and MUIFLI have no displayer yet; they are written as editor files. */
+    public static boolean supports(FliMode mode) { return !mode.underlay; }
+
     public static byte[] build(ConversionResult r) {
+        if (!supports(r.mode)) throw new UnsupportedOperationException(r.mode + ": no displayer yet");
         FliMode mode = r.mode;
         Asm6502 a = new Asm6502(0x0801);
         // BASIC: 10 SYS2061

@@ -6,7 +6,7 @@ uitvoerbaar C64-programma (.prg) en/of als ruwe data. Elke wijziging zie je mete
 <p><b>Inhoud</b></p>
 <ul>
 <li><a href="#quick">Snel aan de slag</a></li>
-<li><a href="#modes">FLI, AFLI en IFLI</a></li>
+<li><a href="#modes">FLI, AFLI, IFLI, NUFLI, MUFLI, MUIFLI</a></li>
 <li><a href="#input">Afbeeldingen openen</a></li>
 <li><a href="#crop">Bijsnijden en schalen</a></li>
 <li><a href="#source">Bronpalet en kleuraanpassing</a></li>
@@ -32,17 +32,20 @@ uitvoerbaar C64-programma (.prg) en/of als ruwe data. Elke wijziging zie je mete
 <li>Op de C64 of in VICE: <code>LOAD"NAAM",8</code> en <code>RUN</code> (of <code>SYS 2061</code>). Het beeld blijft staan tot je de C64 reset.</li>
 </ol>
 
-<a name="modes"></a><h2>FLI, AFLI en IFLI</h2>
+<a name="modes"></a><h2>FLI, AFLI, IFLI, NUFLI, MUFLI, MUIFLI</h2>
 <table border="1" cellspacing="0">
 <tr><th>Modus</th><th>Resolutie</th><th>Kleuren</th></tr>
 <tr><td>FLI (multicolor)</td><td>160×200, dubbelbrede pixels</td><td>Per 4×8-cel: één kleur uit het kleuren-RAM, plus twee kleuren per cel <i>en pixelregel</i>, plus één achtergrondkleur voor het hele beeld.</td></tr>
 <tr><td>AFLI (hires-FLI)</td><td>320×200</td><td>Per 8×1-cel (één cel, één pixelregel): twee kleuren.</td></tr>
 <tr><td>IFLI (multicolor-interlace)</td><td>"gevoelsmatig" 320×200</td><td>Twee FLI-beelden die elk frame om beurten worden getoond, het tweede één pixel verschoven. Het oog mengt ze tot meer kleuren en fijnere details. Op een echte monitor flikkert het licht.</td></tr>
+<tr><td>NUFLI (hires + sprites)</td><td>320×200</td><td>Hires-FLI (twee kleuren per 8×2-cel) boven zes dubbelbrede sprites die per strook van 48 pixels en lijnpaar een derde kleur geven. Zelfs het FLI-buggebied krijgt kleuren van nog twee sprites.</td></tr>
+<tr><td>MUFLI (hires + sprites)</td><td>296×200</td><td>Zoals NUFLI, maar de sprites kunnen per lijnpaar multicolor zijn (drie spritekleuren, eenheden van 4 pixels); het FLI-buggebied blijft zwart.</td></tr>
+<tr><td>MUIFLI (MUFLI-interlace)</td><td>296×200</td><td>Twee MUFLI-afbeeldingen afwisselend getoond, voor meer kleuren. Zonder verschuiving.</td></tr>
 </table>
 <p><b>De FLI-bug:</b> op een echte C64 kunnen de linker drie tekenkolommen (24 pixels) van elke FLI-regel de kleuren van
 het beeld niet tonen. FlipperJ weet dat en gebruikt daar alleen de achtergrondkleur. Met <b>FLI-bug weergeven</b> zie je
 deze kolommen zoals de C64 ze toont.</p>
-<p>Items die in de moduslijst als "gepland" zijn gemarkeerd, zijn nog niet beschikbaar.</p>
+<p><b>NUFLI, MUFLI, MUIFLI</b> worden opgeslagen als bestanden van de NUFLI Editor (.nuf), MUFLI Editor (.muf) en MUIFLI Editor (.mui) – de voorbeeldweergave toont wat het inlezen van dat bestand oplevert. Een startbaar .prg met een eigen weergaveprogramma voor deze modi is nog in ontwikkeling. MuleJ en FlipperJ kunnen deze bestanden weer openen.</p>
 
 <a name="input"></a><h2>Afbeeldingen openen</h2>
 <p>FlipperJ leest alle gangbare pc-formaten (PNG, JPEG, GIF, BMP, WebP, TIFF, PSD, TGA, PCX, …) en C64-afbeeldingen:

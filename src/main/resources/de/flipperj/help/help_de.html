@@ -6,7 +6,7 @@ startbares C64-Programm (.prg) und/oder als Rohdaten. Jede Änderung siehst du s
 <p><b>Inhalt</b></p>
 <ul>
 <li><a href="#quick">Schnellstart</a></li>
-<li><a href="#modes">FLI, AFLI und IFLI</a></li>
+<li><a href="#modes">FLI, AFLI, IFLI, NUFLI, MUFLI, MUIFLI</a></li>
 <li><a href="#input">Bilder öffnen</a></li>
 <li><a href="#crop">Zuschneiden &amp; skalieren</a></li>
 <li><a href="#source">Quellpalette &amp; Farbabgleich</a></li>
@@ -32,17 +32,20 @@ startbares C64-Programm (.prg) und/oder als Rohdaten. Jede Änderung siehst du s
 <li>Am C64 oder in VICE: <code>LOAD"NAME",8</code> und <code>RUN</code> (oder <code>SYS 2061</code>). Das Bild bleibt stehen, bis du den C64 zurücksetzt.</li>
 </ol>
 
-<a name="modes"></a><h2>FLI, AFLI und IFLI</h2>
+<a name="modes"></a><h2>FLI, AFLI, IFLI, NUFLI, MUFLI, MUIFLI</h2>
 <table border="1" cellspacing="0">
 <tr><th>Modus</th><th>Auflösung</th><th>Farben</th></tr>
 <tr><td>FLI (Multicolor)</td><td>160×200, doppelt breite Pixel</td><td>Pro 4×8-Zelle: eine Farbe aus dem Farb-RAM, dazu zwei Farben pro Zelle <i>und Pixelzeile</i>, dazu eine Hintergrundfarbe fürs ganze Bild.</td></tr>
 <tr><td>AFLI (Hires-FLI)</td><td>320×200</td><td>Pro 8×1-Zelle (eine Zelle, eine Pixelzeile): zwei Farben.</td></tr>
 <tr><td>IFLI (Multicolor-Interlace)</td><td>„gefühlt“ 320×200</td><td>Zwei FLI-Bilder, die jedes Frame abwechselnd gezeigt werden, das zweite um einen Pixel verschoben. Das Auge mischt sie zu mehr Farben und feineren Details. Auf einem echten Monitor flimmert es leicht.</td></tr>
+<tr><td>NUFLI (Hires + Sprites)</td><td>320×200</td><td>Hires-FLI (zwei Farben je 8×2-Zelle) über sechs doppelt breiten Sprites, die je 48-Pixel-Streifen und Zeilenpaar eine dritte Farbe ergeben. Sogar der FLI-Bug-Bereich bekommt Farben von zwei weiteren Sprites.</td></tr>
+<tr><td>MUFLI (Hires + Sprites)</td><td>296×200</td><td>Wie NUFLI, aber die Sprites können je Zeilenpaar Multicolor sein (drei Sprite-Farben, 4-Pixel-Einheiten); der FLI-Bug-Bereich bleibt schwarz.</td></tr>
+<tr><td>MUIFLI (MUFLI-Interlace)</td><td>296×200</td><td>Zwei MUFLI-Bilder im Wechsel, für mehr Farben. Ohne Versatz zwischen beiden.</td></tr>
 </table>
 <p><b>Der FLI-Bug:</b> Auf einem echten C64 können die linken drei Zeichenspalten (24 Pixel) jeder FLI-Zeile nicht die
 Farben des Bildes zeigen. FlipperJ weiß das und nutzt dort nur die Hintergrundfarbe. Mit <b>FLI-Bug darstellen</b>
 siehst du diese Spalten so, wie der C64 sie zeigt.</p>
-<p>Einträge, die in der Modusliste als „geplant“ markiert sind, gibt es noch nicht.</p>
+<p><b>NUFLI, MUFLI, MUIFLI</b> werden als Dateien des NUFLI-Editors (.nuf), MUFLI-Editors (.muf) und MUIFLI-Editors (.mui) geschrieben – die Vorschau zeigt, was beim Einlesen dieser Datei herauskommt. Ein startbares .prg mit eigenem Anzeigeprogramm für diese Modi ist noch in Arbeit. MuleJ und FlipperJ können die Dateien wieder öffnen.</p>
 
 <a name="input"></a><h2>Bilder öffnen</h2>
 <p>FlipperJ liest alle üblichen PC-Formate (PNG, JPEG, GIF, BMP, WebP, TIFF, PSD, TGA, PCX, …) und C64-Bilder:

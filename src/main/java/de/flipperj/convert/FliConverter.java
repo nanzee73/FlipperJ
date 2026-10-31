@@ -48,6 +48,7 @@ public final class FliConverter {
             }
             case AFLI -> frames.add(convertHires(target320, s, m, s.passes(), p).frame());
             case IFLI -> frames.addAll(convertIfli(target320, s, m, s.sourcePalette(), p));
+            case NUFLI, MUFLI, MUIFLI -> { return UnderlayConverter.convert(target320, s, m, p); }
         }
         p.update("Done", 1.0);
         return new ConversionResult(s.mode(), frames, s.renderBug(), target320);

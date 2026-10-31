@@ -6,7 +6,7 @@ körbart C64-program (.prg) och/eller som rådata. Varje ändring syns direkt i 
 <p><b>Innehåll</b></p>
 <ul>
 <li><a href="#quick">Snabbstart</a></li>
-<li><a href="#modes">FLI, AFLI och IFLI</a></li>
+<li><a href="#modes">FLI, AFLI, IFLI, NUFLI, MUFLI, MUIFLI</a></li>
 <li><a href="#input">Öppna bilder</a></li>
 <li><a href="#crop">Beskär och skala</a></li>
 <li><a href="#source">Källpalett och färgmatchning</a></li>
@@ -32,17 +32,20 @@ körbart C64-program (.prg) och/eller som rådata. Varje ändring syns direkt i 
 <li>På C64 eller i VICE: <code>LOAD"NAMN",8</code> och <code>RUN</code> (eller <code>SYS 2061</code>). Bilden ligger kvar tills du återställer C64:an.</li>
 </ol>
 
-<a name="modes"></a><h2>FLI, AFLI och IFLI</h2>
+<a name="modes"></a><h2>FLI, AFLI, IFLI, NUFLI, MUFLI, MUIFLI</h2>
 <table border="1" cellspacing="0">
 <tr><th>Läge</th><th>Upplösning</th><th>Färger</th></tr>
 <tr><td>FLI (multicolor)</td><td>160×200, dubbelbreda pixlar</td><td>Per 4×8-cell: en färg från färg-RAM, plus två färger per cell <i>och pixelrad</i>, plus en bakgrundsfärg för hela bilden.</td></tr>
 <tr><td>AFLI (hires-FLI)</td><td>320×200</td><td>Per 8×1-cell (en cell, en pixelrad): två färger.</td></tr>
 <tr><td>IFLI (multicolor-interlace)</td><td>"upplevd" 320×200</td><td>Två FLI-bilder som visas omväxlande varje bildruta, den andra förskjuten en pixel. Ögat blandar dem till fler färger och finare detaljer. På en riktig monitor flimrar det lite.</td></tr>
+<tr><td>NUFLI (hires + sprites)</td><td>320×200</td><td>Hires-FLI (två färger per 8×2-cell) över sex dubbelbreda sprites som ger en tredje färg per 48 pixlar bred remsa och radpar. Även FLI-buggens område får färger från två sprites till.</td></tr>
+<tr><td>MUFLI (hires + sprites)</td><td>296×200</td><td>Som NUFLI, men sprites kan vara multicolor per radpar (tre spritefärger, 4-pixelenheter); FLI-buggens område förblir svart.</td></tr>
+<tr><td>MUIFLI (MUFLI-interlace)</td><td>296×200</td><td>Två MUFLI-bilder som visas omväxlande, för fler färger. Ingen förskjutning mellan dem.</td></tr>
 </table>
 <p><b>FLI-buggen:</b> på en riktig C64 kan de tre vänstra teckenkolumnerna (24 pixlar) på varje FLI-rad inte visa bildens
 färger. FlipperJ vet detta och använder där bara bakgrundsfärgen. Med <b>Visa FLI-buggen</b> ser du kolumnerna som C64:an
 visar dem.</p>
-<p>Poster i lägeslistan som är markerade som "planerad" finns inte ännu.</p>
+<p><b>NUFLI, MUFLI, MUIFLI</b> sparas som filer för NUFLI Editor (.nuf), MUFLI Editor (.muf) och MUIFLI Editor (.mui) – förhandsvisningen visar vad som fås när filen läses in. En körbar .prg med FlipperJs egen visare för dessa lägen är ännu under arbete. MuleJ och FlipperJ kan öppna filerna igen.</p>
 
 <a name="input"></a><h2>Öppna bilder</h2>
 <p>FlipperJ läser alla vanliga PC-format (PNG, JPEG, GIF, BMP, WebP, TIFF, PSD, TGA, PCX, …) och C64-bilder:

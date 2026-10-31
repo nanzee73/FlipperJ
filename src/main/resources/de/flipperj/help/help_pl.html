@@ -6,7 +6,7 @@ program C64 (.prg) i/lub jako surowe dane. Każdą zmianę od razu widać w podg
 <p><b>Spis treści</b></p>
 <ul>
 <li><a href="#quick">Szybki start</a></li>
-<li><a href="#modes">FLI, AFLI i IFLI</a></li>
+<li><a href="#modes">FLI, AFLI, IFLI, NUFLI, MUFLI, MUIFLI</a></li>
 <li><a href="#input">Otwieranie obrazów</a></li>
 <li><a href="#crop">Przycinanie i skalowanie</a></li>
 <li><a href="#source">Paleta źródłowa i dopasowanie</a></li>
@@ -32,17 +32,20 @@ program C64 (.prg) i/lub jako surowe dane. Każdą zmianę od razu widać w podg
 <li>Na C64 lub w VICE: <code>LOAD"NAZWA",8</code> i <code>RUN</code> (albo <code>SYS 2061</code>). Obraz zostaje na ekranie, dopóki nie zresetujesz C64.</li>
 </ol>
 
-<a name="modes"></a><h2>FLI, AFLI i IFLI</h2>
+<a name="modes"></a><h2>FLI, AFLI, IFLI, NUFLI, MUFLI, MUIFLI</h2>
 <table border="1" cellspacing="0">
 <tr><th>Tryb</th><th>Rozdzielczość</th><th>Kolory</th></tr>
 <tr><td>FLI (multicolor)</td><td>160×200, piksele podwójnej szerokości</td><td>Na komórkę 4×8: jeden kolor z Color RAM, do tego dwa kolory na komórkę <i>i linię pikseli</i>, do tego jeden kolor tła dla całego obrazu.</td></tr>
 <tr><td>AFLI (hires FLI)</td><td>320×200</td><td>Na komórkę 8×1 (jedna komórka, jedna linia): dwa kolory.</td></tr>
 <tr><td>IFLI (multicolor z przeplotem)</td><td>„wizualnie” 320×200</td><td>Dwa obrazy FLI wyświetlane na przemian w każdej ramce, drugi przesunięty o jeden piksel. Oko miesza je w więcej kolorów i drobniejsze szczegóły. Na prawdziwym monitorze lekko migocze.</td></tr>
+<tr><td>NUFLI (hires + sprite’y)</td><td>320×200</td><td>Hires FLI (dwa kolory na komórkę 8×2) nad sześcioma poszerzonymi sprite’ami, które dodają trzeci kolor na pas 48 pikseli i parę linii. Nawet obszar błędu FLI dostaje kolory z dwóch kolejnych sprite’ów.</td></tr>
+<tr><td>MUFLI (hires + sprite’y)</td><td>296×200</td><td>Jak NUFLI, ale sprite’y mogą być wielokolorowe dla każdej pary linii (trzy kolory sprite’a, jednostki 4-pikselowe); obszar błędu FLI pozostaje czarny.</td></tr>
+<tr><td>MUIFLI (MUFLI z przeplotem)</td><td>296×200</td><td>Dwa obrazy MUFLI wyświetlane naprzemiennie, dla większej liczby kolorów. Bez przesunięcia.</td></tr>
 </table>
 <p><b>Błąd FLI:</b> na prawdziwym C64 trzy lewe kolumny znaków (24 piksele) każdej linii FLI nie mogą pokazać kolorów
 obrazu. FlipperJ o tym wie i używa tam tylko koloru tła. Opcja <b>Pokaż błąd FLI</b> pokazuje te kolumny tak, jak
 wyświetla je C64.</p>
-<p>Pozycje oznaczone na liście trybów jako „planowane” nie są jeszcze dostępne.</p>
+<p><b>NUFLI, MUFLI, MUIFLI</b> są zapisywane jako pliki NUFLI Editora (.nuf), MUFLI Editora (.muf) i MUIFLI Editora (.mui) – podgląd pokazuje to, co daje odczyt tego pliku. Uruchamialny .prg z własnym programem wyświetlającym dla tych trybów jest jeszcze w przygotowaniu. MuleJ i FlipperJ potrafią ponownie otworzyć te pliki.</p>
 
 <a name="input"></a><h2>Otwieranie obrazów</h2>
 <p>FlipperJ czyta wszystkie popularne formaty PC (PNG, JPEG, GIF, BMP, WebP, TIFF, PSD, TGA, PCX, …) oraz obrazy C64:

@@ -30,7 +30,8 @@ public final class Cli {
                        (no arguments starts the GUI)
 
                 Options:
-                  --mode fli|afli|ifli        default: fli
+                  --mode fli|afli|ifli|nufli|mufli|muifli   default: fli
+                                              (NUFLI/MUFLI/MUIFLI: written as editor file .nuf/.muf/.mui)
                   --palette NAME|FILE         source palette (default: Pepto); built-in names:
                                               pepto, colodore, deekay, palette, community, ptoing,
                                               c64hq, ccs64, c64s, vice
@@ -122,11 +123,11 @@ public final class Cli {
         ConversionResult r = FliConverter.convert(target, cs, (msg, f) -> System.out.printf("  %3.0f%% %s%n", f * 100, msg));
         System.out.printf("Converted in %d ms, mean error %.1f%n", System.currentTimeMillis() - t0, r.meanError(pal));
 
-        if (prg) {
+        if (prg && PrgBuilder.supports(mode)) {
             Files.write(out, PrgBuilder.build(r));
             System.out.println("Wrote " + out);
         }
-        if (raw) {
+        if (raw || (prg && !PrgBuilder.supports(mode))) {
             Path dir = out.toAbsolutePath().getParent();
             String base = out.getFileName().toString().replaceFirst("\\.[^.]+$", "");
             for (Path p : RawExporter.export(r, dir, base)) System.out.println("Wrote " + p);

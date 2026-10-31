@@ -6,7 +6,7 @@ C64 program (.prg) and/or as raw data. Everything you change is shown at once in
 <p><b>Contents</b></p>
 <ul>
 <li><a href="#quick">Quick start</a></li>
-<li><a href="#modes">FLI, AFLI and IFLI</a></li>
+<li><a href="#modes">FLI, AFLI, IFLI, NUFLI, MUFLI, MUIFLI</a></li>
 <li><a href="#input">Opening pictures</a></li>
 <li><a href="#crop">Crop &amp; scale</a></li>
 <li><a href="#source">Source palette &amp; matching</a></li>
@@ -32,17 +32,20 @@ C64 program (.prg) and/or as raw data. Everything you change is shown at once in
 <li>On the C64 or in VICE: <code>LOAD"NAME",8</code> and <code>RUN</code> (or <code>SYS 2061</code>). The picture stays on screen until you reset the C64.</li>
 </ol>
 
-<a name="modes"></a><h2>FLI, AFLI and IFLI</h2>
+<a name="modes"></a><h2>FLI, AFLI, IFLI, NUFLI, MUFLI, MUIFLI</h2>
 <table border="1" cellspacing="0">
 <tr><th>Mode</th><th>Resolution</th><th>Colours</th></tr>
 <tr><td>FLI (multicolour)</td><td>160×200, double-wide pixels</td><td>Per 4×8 cell: one colour from the colour RAM, plus two colours per cell <i>and pixel line</i>, plus one background colour for the whole picture.</td></tr>
 <tr><td>AFLI (hires FLI)</td><td>320×200</td><td>Per 8×1 cell (one cell, one pixel line): two colours.</td></tr>
 <tr><td>IFLI (multicolour interlace)</td><td>"virtually" 320×200</td><td>Two FLI pictures shown alternately every frame, the second one shifted by one pixel. The eye mixes them into more colours and finer detail. On a real monitor it flickers slightly.</td></tr>
+<tr><td>NUFLI (hires + sprites)</td><td>320×200</td><td>Hires FLI (two colours per 8×2 cell) over six double-wide sprites that add a third colour per 48-pixel strip and line pair. Even the FLI bug area gets colours from two more sprites.</td></tr>
+<tr><td>MUFLI (hires + sprites)</td><td>296×200</td><td>Like NUFLI, but the sprites can be multicolour per line pair (three sprite colours, 4-pixel units); the FLI bug area stays black.</td></tr>
+<tr><td>MUIFLI (MUFLI interlace)</td><td>296×200</td><td>Two MUFLI pictures shown alternately, for more colours. No shift between them.</td></tr>
 </table>
 <p><b>The FLI bug:</b> on a real C64 the leftmost three character columns (24 pixels) of every FLI line cannot show
 the picture's colours. FlipperJ knows this and only uses the background colour there. With <b>Render FLI bug</b>
 you see these columns as the C64 shows them.</p>
-<p>Entries marked "planned" in the mode list are not available yet.</p>
+<p><b>NUFLI, MUFLI, MUIFLI</b> are written as files of the NUFLI Editor (.nuf), MUFLI Editor (.muf) and MUIFLI Editor (.mui) – the preview is what reading that file gives. A runnable .prg with FlipperJ's own displayer for these modes is still being developed. MuleJ and FlipperJ can open these files again.</p>
 
 <a name="input"></a><h2>Opening pictures</h2>
 <p>FlipperJ reads every common PC format (PNG, JPEG, GIF, BMP, WebP, TIFF, PSD, TGA, PCX, …) and C64 pictures:
