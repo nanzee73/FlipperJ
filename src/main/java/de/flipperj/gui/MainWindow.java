@@ -1,5 +1,11 @@
 package de.flipperj.gui;
 
+import java.util.Map;
+
+import java.util.LinkedHashMap;
+
+import de.c64gfx.swing.UndoHistory;
+
 import de.c64gfx.swing.HelpDialog;
 
 import de.c64gfx.dither.Dither;
@@ -99,6 +105,8 @@ public class MainWindow extends JFrame {
     private BufferedImage source;
     private BufferedImage fitted;
     private ImageFitter.Settings fitSettings = ImageFitter.Settings.defaults();
+    /** Undo / redo of all settings and of the frame (not of loading a picture). */
+    private final UndoHistory history = new UndoHistory(this::captureState, this::restoreState);
     private ImageFitter.Settings reframeBackup;
     private float[] preConverted;
     private ConversionResult result;
@@ -224,6 +232,7 @@ public class MainWindow extends JFrame {
         I18n.bind(() -> (I18n.followsSystem() ? system : items.get(I18n.locale())).setSelected(true));
 
         bar.add(file);
+        bar.add(history.menu());
         bar.add(language);
         JMenu help = I18n.text(new JMenu(), "menu.help");
         JMenuItem guide = I18n.text(new JMenuItem(), "menu.help.guide");
@@ -688,6 +697,13 @@ public class MainWindow extends JFrame {
             if (livePreview.isSelected()) settingsChanged();
             else cancelLivePreview();
         });
+
+        // every setting is part of the undo history
+        history.watch(modeButtons);
+        history.watch(sourcePalette, spaceRgb, spaceYuv, spaceHsl, prepare, respectLuma, weightU, weightV, contrast,
+                brightness, gamma, saturation, ditherBox, strength, bleeding, serpentine, passes, backgroundBox,
+                destPalette, renderBug, palAspect, writePrg, writeRaw);
+        history.reset();
     }
 
     // ------------------------------------------------------------------ live preview
@@ -838,6 +854,7 @@ public class MainWindow extends JFrame {
         updateRight();
         leftPanel.fit();
         applyFit();
+        history.reset();                                      // a new picture starts a new history
         if (!livePreview.isSelected()) setStatus("status.loaded", f.getName(), img.getWidth(), img.getHeight());
     }
 
@@ -849,6 +866,7 @@ public class MainWindow extends JFrame {
         if (d.isAccepted()) {
             fitSettings = d.getSettings();
             applyFit();
+            history.commit();
         }
     }
 
@@ -868,6 +886,7 @@ public class MainWindow extends JFrame {
                 fitTimer.stop();
                 if (!accepted) fitSettings = reframeBackup;
                 applyFit();
+                if (accepted) history.commit();
                 if (leftPanel.getZoom() == 1.0 && linkViews.isSelected()) rightPanel.copyViewFrom(leftPanel);
                 setStatus(accepted ? "status.reframeApplied" : "status.reframeCancelled");
             }
@@ -911,6 +930,71 @@ public class MainWindow extends JFrame {
         double a = palAspect.isSelected() ? ImageFitter.Aspect.PAL.ratio : 1.6;
         leftPanel.setDisplayAspect(a);
         rightPanel.setDisplayAspect(a);
+    }
+
+    // ------------------------------------------------------------------ undo
+
+    /** All settings, keyed by the translation key of their label (shown as "Undo: …"). */
+    private Map<String, Object> captureState() {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("undo.mode", selectedMode());
+        m.put("src.title", sourcePalette.getSelectedItem());
+        m.put("src.matchIn", spaceRgb.isSelected() ? "rgb" : spaceHsl.isSelected() ? "hsl" : "yuv");
+        m.put("src.prepare", prepare.isSelected());
+        m.put("src.luma", respectLuma.isSelected());
+        m.put("src.weightU", weightU.getValue());
+        m.put("src.weightV", weightV.getValue());
+        m.put("src.contrast", contrast.getValue());
+        m.put("src.brightness", brightness.getValue());
+        m.put("src.gamma", gamma.getValue());
+        m.put("src.saturation", saturation.getValue());
+        m.put("dit.dither", ditherBox.getSelectedItem());
+        m.put("dit.strength", strength.getValue());
+        m.put("dit.bleeding", bleeding.isSelected());
+        m.put("dit.serpentine", serpentine.isSelected());
+        m.put("dit.passes", passes.getValue());
+        m.put("dit.background", backgroundBox.getSelectedIndex());
+        m.put("dst.title", destPalette.getSelectedItem());
+        m.put("dst.renderBug", renderBug.isSelected());
+        m.put("dst.palAspect", palAspect.isSelected());
+        m.put("file.writePrg", writePrg.isSelected());
+        m.put("file.writeRaw", writeRaw.isSelected());
+        m.put("menu.file.crop", fitSettings);
+        return m;
+    }
+
+    private void restoreState(Map<String, Object> m) {
+        if (leftPanel.isCropMode()) leftPanel.cancelCrop();
+        modeButtons[((FliMode) m.get("undo.mode")).ordinal()].setSelected(true);
+        sourcePalette.setSelectedItem(m.get("src.title"));
+        String space = (String) m.get("src.matchIn");
+        (space.equals("rgb") ? spaceRgb : space.equals("hsl") ? spaceHsl : spaceYuv).setSelected(true);
+        prepare.setSelected((Boolean) m.get("src.prepare"));
+        respectLuma.setSelected((Boolean) m.get("src.luma"));
+        weightU.setValue((Integer) m.get("src.weightU"));
+        weightV.setValue((Integer) m.get("src.weightV"));
+        contrast.setValue((Integer) m.get("src.contrast"));
+        brightness.setValue((Integer) m.get("src.brightness"));
+        gamma.setValue((Integer) m.get("src.gamma"));
+        saturation.setValue((Integer) m.get("src.saturation"));
+        ditherBox.setSelectedItem(m.get("dit.dither"));
+        strength.setValue((Integer) m.get("dit.strength"));
+        bleeding.setSelected((Boolean) m.get("dit.bleeding"));
+        serpentine.setSelected((Boolean) m.get("dit.serpentine"));
+        passes.setValue(m.get("dit.passes"));
+        backgroundBox.setSelectedIndex((Integer) m.get("dit.background"));
+        destPalette.setSelectedItem(m.get("dst.title"));
+        renderBug.setSelected((Boolean) m.get("dst.renderBug"));
+        palAspect.setSelected((Boolean) m.get("dst.palAspect"));
+        writePrg.setSelected((Boolean) m.get("file.writePrg"));
+        writeRaw.setSelected((Boolean) m.get("file.writeRaw"));
+        ImageFitter.Settings fs = (ImageFitter.Settings) m.get("menu.file.crop");
+        boolean newFrame = !fs.equals(fitSettings);
+        fitSettings = fs;
+        updateAspect();
+        updateRight();
+        if (newFrame) applyFit();
+        else updatePreConvert();                              // also starts the live preview
     }
 
     private FliMode selectedMode() {

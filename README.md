@@ -136,6 +136,11 @@ With *Write raw data* the following files are written next to the `.prg` (`_a`/`
 
 These layouts are FlipperJ’s own; they are not guaranteed to match FLI Graph, Gunpaint or other editors.
 
+## Undo
+
+*Edit ▸ Undo* (Ctrl+Z / ⌘Z) and *Redo* (Ctrl+Y / ⇧⌘Z) for every setting and the frame, up to 100 steps
+(C64GfxLib `UndoHistory`). Loading a picture starts a new history.
+
 ## User guide
 
 *Help ▸ User guide* (F1) explains every function in the language of the program (English, German, Polish,
