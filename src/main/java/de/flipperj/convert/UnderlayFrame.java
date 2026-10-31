@@ -38,10 +38,16 @@ public final class UnderlayFrame {
     /** Sprite colour pair of a line. */
     public static int pair(int y) { return (y + 1) >> 1; }
 
-    public static int cell(int y, int cx) { return (y >> 1) * 40 + cx; }
+    public static int cell(int y, int cx) { return Math.min(y >> 1, LAST_CELL_ROW) * 40 + cx; }
 
-    /** NUFLI: the bug area shows light grey for the cell colours in this line. */
-    public static boolean greyBugLine(int y) { return (y & 6) != 0; }
+    /**
+     * NUFLI: the bug area shows light grey for the cell colours in this line. FlipperJ's displayer forces every
+     * second line from line 2 on into a late bad line (lines 0 and 1 come from a regular one).
+     */
+    public static boolean greyBugLine(int y) { return y >= 2; }
+
+    /** Lines 198 and 199 cannot have bad lines; they keep the cells of lines 196 and 197. */
+    public static final int LAST_CELL_ROW = 98;
 
     /** Palette index the VIC shows at (x, y), following the same rules as the file readers. */
     public int colour(int x, int y) {

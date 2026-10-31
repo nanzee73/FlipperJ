@@ -45,7 +45,12 @@ uitvoerbaar C64-programma (.prg) en/of als ruwe data. Elke wijziging zie je mete
 <p><b>De FLI-bug:</b> op een echte C64 kunnen de linker drie tekenkolommen (24 pixels) van elke FLI-regel de kleuren van
 het beeld niet tonen. FlipperJ weet dat en gebruikt daar alleen de achtergrondkleur. Met <b>FLI-bug weergeven</b> zie je
 deze kolommen zoals de C64 ze toont.</p>
-<p><b>NUFLI, MUFLI, MUIFLI</b> worden opgeslagen als bestanden van de NUFLI Editor (.nuf), MUFLI Editor (.muf) en MUIFLI Editor (.mui) – de voorbeeldweergave toont wat het inlezen van dat bestand oplevert. Een startbaar .prg met een eigen weergaveprogramma voor deze modi is nog in ontwikkeling. MuleJ en FlipperJ kunnen deze bestanden weer openen.</p>
+<p><b>NUFLI, MUFLI, MUIFLI</b> worden altijd ook opgeslagen als bestanden van de NUFLI Editor (.nuf), MUFLI Editor (.muf) en MUIFLI Editor (.mui), die MuleJ en FlipperJ weer kunnen openen. NUFLI en MUFLI krijgen bovendien een startbaar .prg met FlipperJs eigen weergaveprogramma; voor MUIFLI is dat er nog niet. De voorbeeldweergave toont precies wat het weergaveprogramma toont. De grenzen daarvan, waar de converter al rekening mee houdt:</p>
+<ul>
+<li>per lijnpaar zoveel wisselingen van spritekleuren als er tijd voor is: meestal 6, in sommige lijnparen 4 of 5 (MUFLI: een wissel tussen hires en multicolor telt als één extra);</li>
+<li>in het FLI-buggebied (NUFLI) zijn de cellen vanaf lijn 2 lichtgrijs; kleur komt daar alleen van de sprites;</li>
+<li>lijnen 198 en 199 houden de celkleuren van lijnen 196 en 197.</li>
+</ul>
 
 <a name="input"></a><h2>Afbeeldingen openen</h2>
 <p>FlipperJ leest alle gangbare pc-formaten (PNG, JPEG, GIF, BMP, WebP, TIFF, PSD, TGA, PCX, …) en C64-afbeeldingen:

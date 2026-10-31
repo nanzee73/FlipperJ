@@ -1259,11 +1259,13 @@ public class MainWindow extends JFrame {
         if (out.isEmpty() || (!writePrg.isSelected() && !writeRaw.isSelected())) return "";
         Path prgPath = Path.of(out);
         StringBuilder sb = new StringBuilder();
-        if (!PrgBuilder.supports(result.mode)) {             // NUFLI / MUFLI / MUIFLI: editor file only, for now
+        if (result.mode.underlay) {                         // NUFLI / MUFLI / MUIFLI: editor file, .prg where possible
             Path dir = prgPath.toAbsolutePath().getParent();
             String base = prgPath.getFileName().toString().replaceFirst("\\.[^.]+$", "");
-            Path p = RawExporter.export(result, dir, base).get(0);
-            return p.getFileName().toString();
+            sb.append(RawExporter.export(result, dir, base).get(0).getFileName());
+            if (!writePrg.isSelected() || !PrgBuilder.supports(result.mode)) return sb.toString();
+            Files.write(prgPath, PrgBuilder.build(result));
+            return sb.append(" + ").append(prgPath.getFileName()).toString();
         }
         if (writePrg.isSelected()) {
             Files.write(prgPath, PrgBuilder.build(result));

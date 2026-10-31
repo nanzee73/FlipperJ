@@ -7,7 +7,7 @@ with a live preview, several palettes, dithering and a runnable `.prg` output.
 
 | Area | What you get |
 |---|---|
-| Modes | **FLI** (multicolour, 160×200), **AFLI** (hires FLI, 320×200), **IFLI** (multicolour interlace, two frames), **NUFLI** (hires FLI over x-expanded sprites, 320×200), **MUFLI** (hires FLI over hires/multicolour sprites, 296×200), **MUIFLI** (two MUFLI frames). NUFLI/MUFLI/MUIFLI are written as NUFLI/MUFLI/MUIFLI Editor files (`.nuf/.muf/.mui`); a runnable `.prg` for them is in development. |
+| Modes | **FLI** (multicolour, 160×200), **AFLI** (hires FLI, 320×200), **IFLI** (multicolour interlace, two frames), **NUFLI** (hires FLI over x-expanded sprites, 320×200), **MUFLI** (hires FLI over hires/multicolour sprites, 296×200), **MUIFLI** (two MUFLI frames). NUFLI/MUFLI/MUIFLI are also written as NUFLI/MUFLI/MUIFLI Editor files (`.nuf/.muf/.mui`); NUFLI and MUFLI get a runnable `.prg` with FlipperJ's own displayer (MUIFLI not yet). |
 | Input | Everything Java ImageIO reads (PNG, JPEG, GIF, BMP) plus the TwelveMonkeys plugins (WebP, TIFF, PSD, TGA, PCX, PNM, IFF/ILBM, SGI, PICT, ICNS), and C64 pictures via C64GfxLib: Koala, Art Studio, Advanced Art Studio, Drazpaint, Drazlace, FLI / FLI Designer / FLI Graph / FLI Editor, AFLI, Gunpaint, Funpaint, NUFLI, MUFLI, MUIFLI and FlipperJ's own raw `.fli/.afl/.ifl` files (also compressed ones), drawn with the selected source palette. Drag & drop supported. The open dialog filters on “All image formats” by default (built from the installed readers); delete/rename buttons of the GTK file chooser are hidden. The output path follows each newly loaded picture (same name, next to the picture or in the output folder you chose). |
 | Crop & scale | Opens automatically for pictures that are not 320×200 or 160×200 – nothing is converted before you confirm, *Cancel* keeps the previous picture: draggable crop frame, aspect lock (PAL ≈1.50:1, square pixels, NTSC, free), stretch / fit (letterbox with border colour) / fill, four scaling filters. |
 | Palettes | Pepto, Colodore, DeeKay, PALette (PAL/Offence), Community Colors, Ptoing, C64HQ, CCS64, C64S, VICE (old default). Custom palettes: edit in the colour editor or load `.vpl` (VICE), `.gpl` (GIMP) and hex lists. Separate source (matching) and destination (display) palette, like Mufflon. |
@@ -126,6 +126,23 @@ and lets it resume at cycle 55 – from there the timing is deterministic. Line 
 then the classic 23-cycle FLI loop runs until `$F7`. IFLI toggles bank (`$DD00`), `$D016` X-scroll and
 `$D021` every frame.
 
+## NUFLI / MUFLI displayer
+
+FlipperJ writes its own displayer for NUFLI and MUFLI (`output/UnderlayPrg`), tested pixel-exactly in VICE (x64sc):
+
+* `$0801` BASIC `SYS 2061`, setup and one block of code per line pair (about 3.6 KB); `$2000-$79FF` picture data in
+  the NUFLI layout (top 128 lines in VIC bank 1, the rest in bank 0, switched in line 127 between the last bitmap
+  fetch and the first sprite pointer fetch).
+* All 8 sprites are on, so the CPU always runs in cycles 11-54 of a line. Even lines are bad lines: lines 0, 8, 16, …
+  regular ones ($D011 written in cycle 55 of the line before), the others forced late in cycle 14 (FLI bug in the
+  first three columns). Lines 198/199 can't be bad lines and keep the cells of 196/197.
+* In each odd line the code writes the changed strip colours (strip i before cycle 20 + 6·(i−1)), $D01C for MUFLI,
+  $D018 for the next line pair and the next $D011 value; a cycle-exact scheduler checks every write, and the
+  converter keeps only as many changes per line pair as fit (`UnderlayPrg.fits`).
+* No sprite crunching: the y-expanded sprites start at raster 45 and are started again every 42 lines by setting
+  their Y registers to the line where they end. The sprite blocks are laid out for this, so the `.prg` holds the
+  same picture as the `.nuf`/`.muf` but not the same bytes.
+
 ## Raw data
 
 With *Write raw data* the following files are written next to the `.prg` (`_a`/`_b` for IFLI frames):
@@ -185,7 +202,7 @@ timing error in the displayer.
 * The `.prg` displayer follows the VIC-II timing model (Christian Bauer’s “VIC article”) but has **not been
   verified in VICE (x64sc) or on real hardware yet**. If the first picture line looks wrong, the cycle
   comments in `PrgBuilder` are the place to adjust.
-* NUFLI, MUFLI and MUIFLI are written as editor files only; FlipperJ's own displayer (`.prg`) for them is still in development.
+* MUIFLI is written as editor file only; a `.prg` would need a packer (two pictures plus displayer do not fit below $D000 in one load).
 * C64 formats as input (Mufflon reads IFLI `.gun/.fun/.fp2` and Drazlace `.drl`) are not supported yet.
 * PAL timing only.
 

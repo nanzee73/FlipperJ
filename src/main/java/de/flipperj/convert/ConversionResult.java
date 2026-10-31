@@ -13,8 +13,9 @@ public final class ConversionResult {
     /** Target (pre-converted picture), 320×200 RGB floats. */
     public final float[] target;
     private final int[][] indices;
-    /** NUFLI / MUFLI / MUIFLI: the editor file (frames is empty then). */
+    /** NUFLI / MUFLI / MUIFLI: the editor file and the frames it was made from (frames is empty then). */
     public final byte[] editorFile;
+    public final List<UnderlayFrame> underlay;
 
     public ConversionResult(FliMode mode, List<FliFrame> frames, boolean renderBug, float[] target) {
         this.mode = mode;
@@ -22,17 +23,20 @@ public final class ConversionResult {
         this.renderBug = renderBug;
         this.target = target;
         this.editorFile = null;
+        this.underlay = List.of();
         this.indices = new int[frames.size()][];
         for (int i = 0; i < frames.size(); i++) indices[i] = VicRenderer.render(frames.get(i), mode.multicolor, renderBug);
     }
 
     /** Sprite underlay modes: the editor file and the palette indices it shows per frame (320×200). */
-    public ConversionResult(FliMode mode, byte[] editorFile, int[][] indices, float[] target) {
+    public ConversionResult(FliMode mode, byte[] editorFile, List<UnderlayFrame> underlay, int[][] indices,
+                            float[] target) {
         this.mode = mode;
         this.frames = List.of();
         this.renderBug = true;
         this.target = target;
         this.editorFile = editorFile;
+        this.underlay = underlay;
         this.indices = indices;
     }
 

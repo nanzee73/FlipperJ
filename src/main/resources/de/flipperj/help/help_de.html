@@ -45,7 +45,12 @@ startbares C64-Programm (.prg) und/oder als Rohdaten. Jede Änderung siehst du s
 <p><b>Der FLI-Bug:</b> Auf einem echten C64 können die linken drei Zeichenspalten (24 Pixel) jeder FLI-Zeile nicht die
 Farben des Bildes zeigen. FlipperJ weiß das und nutzt dort nur die Hintergrundfarbe. Mit <b>FLI-Bug darstellen</b>
 siehst du diese Spalten so, wie der C64 sie zeigt.</p>
-<p><b>NUFLI, MUFLI, MUIFLI</b> werden als Dateien des NUFLI-Editors (.nuf), MUFLI-Editors (.muf) und MUIFLI-Editors (.mui) geschrieben – die Vorschau zeigt, was beim Einlesen dieser Datei herauskommt. Ein startbares .prg mit eigenem Anzeigeprogramm für diese Modi ist noch in Arbeit. MuleJ und FlipperJ können die Dateien wieder öffnen.</p>
+<p><b>NUFLI, MUFLI, MUIFLI</b> werden immer auch als Dateien des NUFLI-Editors (.nuf), MUFLI-Editors (.muf) und MUIFLI-Editors (.mui) geschrieben, die MuleJ und FlipperJ wieder öffnen können. NUFLI und MUFLI bekommen außerdem ein startbares .prg mit FlipperJs eigenem Anzeigeprogramm; für MUIFLI gibt es das noch nicht. Die Vorschau zeigt genau, was das Anzeigeprogramm zeigt. Seine Grenzen, die der Konverter schon berücksichtigt:</p>
+<ul>
+<li>je Zeilenpaar so viele Wechsel der Sprite-Farben, wie Zeit ist: meist 6, in einigen Zeilenpaaren 4 oder 5 (MUFLI: ein Wechsel zwischen Hires und Multicolor zählt als einer mehr);</li>
+<li>im FLI-Bug-Bereich (NUFLI) sind die Zellen ab Zeile 2 hellgrau; Farbe kommt dort nur von den Sprites;</li>
+<li>die Zeilen 198 und 199 behalten die Zellfarben der Zeilen 196 und 197.</li>
+</ul>
 
 <a name="input"></a><h2>Bilder öffnen</h2>
 <p>FlipperJ liest alle üblichen PC-Formate (PNG, JPEG, GIF, BMP, WebP, TIFF, PSD, TGA, PCX, …) und C64-Bilder:

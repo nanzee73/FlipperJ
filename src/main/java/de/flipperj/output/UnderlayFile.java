@@ -39,15 +39,22 @@ public final class UnderlayFile {
     /** For sprite data: which sprite byte (slot, sprite row, column) it holds – lines of one pair share it. */
     private final int[] owner;
     private final int shift;
+    /** Memory image for FlipperJ's own displayer: sprites restarted every 42 lines instead of crunched. */
+    private final boolean prg;
 
-    private UnderlayFile(boolean nufli) {
+    /** Memory layout of a NUFLI file (also used for FlipperJ's displayer, MUFLI pictures included). */
+    private final boolean layout;
+
+    private UnderlayFile(boolean nufli, boolean prg) {
         this.nufli = nufli;
-        d = new byte[nufli ? NUFLI_SIZE : MUFLI_SIZE];
+        this.prg = prg;
+        this.layout = nufli || prg;
+        d = new byte[layout ? NUFLI_SIZE : MUFLI_SIZE];
         use = new byte[d.length];
         owner = new int[d.length];
-        shift = nufli ? 0 : 0x100;
+        shift = layout ? 0 : 0x100;
         d[0] = 0;
-        d[1] = (byte) (nufli ? 0x20 : 0x21);
+        d[1] = (byte) (layout ? 0x20 : 0x21);
         use[0] = use[1] = 1;
     }
 
@@ -57,7 +64,14 @@ public final class UnderlayFile {
 
     /** NUFLI or MUFLI file plus the number of shared-byte conflicts. */
     public static UnderlayFile build(UnderlayFrame f) {
-        UnderlayFile u = new UnderlayFile(f.nufli);
+        UnderlayFile u = new UnderlayFile(f.nufli, false);
+        u.write(f);
+        return u;
+    }
+
+    /** Picture data at $2000-$79FF (load address first) for {@link UnderlayPrg}. */
+    static UnderlayFile forDisplayer(UnderlayFrame f) {
+        UnderlayFile u = new UnderlayFile(f.nufli, true);
         u.write(f);
         return u;
     }
@@ -82,7 +96,7 @@ public final class UnderlayFile {
     }
 
     private int bitmapBase(int y) {
-        if (nufli) return y < 128 ? 0x4002 : 2;
+        if (layout) return y < 128 ? 0x4002 : 2;
         return 0x3f02 - ((y & 128) << 7);
     }
 
@@ -93,17 +107,24 @@ public final class UnderlayFile {
         return (((y + 47) >> 1) * 3 + column + (y < 123 ? 0 : y < 165 ? 1 : 2)) & 63;
     }
 
+    /** FlipperJ's displayer: y-expanded sprites started at raster 45 and restarted every 42 lines. */
+    static int displayerSpriteLine(int y, int column) {
+        return ((y + 5) >> 1) % 21 * 3 + column;
+    }
+
+    private int line(int y, int column) { return prg ? displayerSpriteLine(y, column) : spriteLine(y, column); }
+
     /** Sprite pointer slot offset in screen RAM: NUFLI 0..6 = sprite, 7 = multicolour sprite; MUFLI 1..6 = strip. */
     private int pointerOffset(int slot) {
-        if (nufli) return slot == 7 ? 0x3ff : 0x3f8 + slot;
+        if (layout) return slot == 7 ? 0x3ff : 0x3f8 + slot;
         return 0x3f9 + slot - 1;
     }
 
     private int blockBase(int y) {
-        return (nufli ? 128 : 124) - ((y & 128) << 1);
+        return (layout ? 128 : 124) - ((y & 128) << 1);
     }
 
-    private int maxBlock() { return nufli ? (d.length - 2) / 64 - 1 : 339; }
+    private int maxBlock() { return layout ? (d.length - 2) / 64 - 1 : 339; }
 
     private void fixed(int off, int value) {
         d[off] = (byte) value;
@@ -120,13 +141,41 @@ public final class UnderlayFile {
             for (int cx = x0; cx < 40; cx++) {
                 int k = UnderlayFrame.cell(y, cx);
                 int off = (y >> 3) * 40 + cx;
-                fixed(s + off, (f.fg[k] << 4) | (f.bg[k] & 15));
+                boolean grey = nufli && cx < 3 && UnderlayFrame.greyBugLine(y);   // light grey, as the VIC shows it
+                fixed(s + off, grey ? 0xFF : (f.fg[k] << 4) | (f.bg[k] & 15));
                 int v = 0;
                 for (int px = 0; px < 8; px++) if (f.bits[y * 320 + cx * 8 + px]) v |= 0x80 >> px;
                 fixed(bm + (off << 3) + (y & 7), v);
             }
         }
-        // colour tables
+        if (!prg) writeEditorExtras(f);
+        // reserve all pointer bytes before choosing blocks
+        List<Integer> screens = new ArrayList<>();
+        for (int y = 0; y < 200; y++) if (!screens.contains(screen(y))) screens.add(screen(y));
+        int[] slots = layout ? new int[]{0, 1, 2, 3, 4, 5, 6, 7} : new int[]{1, 2, 3, 4, 5, 6};
+        for (int s : screens) for (int slot : slots) fixed(s + pointerOffset(slot), 0);
+        // sprite blocks per screen and slot
+        for (int s : screens)
+            for (int slot : slots) {
+                List<Integer> lines = new ArrayList<>();
+                for (int y = 0; y < 200; y++) if (screen(y) == s) lines.add(y);
+                int base = blockBase(lines.get(0));
+                int block = chooseBlock(lines, base, slot);
+                fixed(s + pointerOffset(slot), block - base);
+                for (int y : lines)
+                    for (int c = 0; c < 3; c++) {
+                        int off = 2 + (block << 6) + line(y, c);
+                        int v = spriteByte(f, y, slot, c);
+                        if (use[off] == 3 && (d[off] & 0xFF) != v) conflicts++;
+                        d[off] = (byte) v;
+                        use[off] = 3;
+                        owner[off] = id(slot, y, c);
+                    }
+            }
+    }
+
+    /** Sprite colour tables and constant colours, read by the editors (FlipperJ's displayer has them in its code). */
+    private void writeEditorExtras(UnderlayFrame f) {
         int table = nufli ? 0x402 : 0x302;
         for (int st = 1; st <= 6; st++)
             for (int p = 0; p < UnderlayFrame.PAIRS; p++)
@@ -146,29 +195,6 @@ public final class UnderlayFile {
             fixed(0x1ef3, f.mc1);
             fixed(0x1ef2, f.mc3);
         }
-        // reserve all pointer bytes before choosing blocks
-        List<Integer> screens = new ArrayList<>();
-        for (int y = 0; y < 200; y++) if (!screens.contains(screen(y))) screens.add(screen(y));
-        int[] slots = nufli ? new int[]{0, 1, 2, 3, 4, 5, 6, 7} : new int[]{1, 2, 3, 4, 5, 6};
-        for (int s : screens) for (int slot : slots) fixed(s + pointerOffset(slot), 0);
-        // sprite blocks per screen and slot
-        for (int s : screens)
-            for (int slot : slots) {
-                List<Integer> lines = new ArrayList<>();
-                for (int y = 0; y < 200; y++) if (screen(y) == s) lines.add(y);
-                int base = blockBase(lines.get(0));
-                int block = chooseBlock(lines, base, slot);
-                fixed(s + pointerOffset(slot), block - base);
-                for (int y : lines)
-                    for (int c = 0; c < 3; c++) {
-                        int off = 2 + (block << 6) + spriteLine(y, c);
-                        int v = spriteByte(f, y, slot, c);
-                        if (use[off] == 3 && (d[off] & 0xFF) != v) conflicts++;
-                        d[off] = (byte) v;
-                        use[off] = 3;
-                        owner[off] = id(slot, y, c);
-                    }
-            }
     }
 
     /** Sprite byte identity: the two lines of a colour pair (2p−1, 2p) show the same sprite row. */
@@ -187,7 +213,7 @@ public final class UnderlayFile {
             long cost = 0;
             for (int y : lines)
                 for (int c = 0; c < 3 && cost < bestCost; c++) {
-                    int off = 2 + (b << 6) + spriteLine(y, c);
+                    int off = 2 + (b << 6) + line(y, c);
                     int u = use[off];
                     if (u == 1) cost += 1_000_000;
                     else if (u == 2) cost += 5;             // usable, but better left to a displayer
@@ -203,6 +229,8 @@ public final class UnderlayFile {
     private static int spriteByte(UnderlayFrame f, int y, int slot, int c) {
         int v = 0;
         int row = y * 320;
+        if (!f.nufli && slot == 0) return 0xFF;           // displayer, MUFLI: black sprite over the FLI bug area
+        if (!f.nufli && slot == 7) return 0;
         if (f.nufli && slot == 0) {                       // hires sprite under the FLI bug area, not expanded
             for (int b = 0; b < 8; b++) if ((f.sprite[row + c * 8 + b] & 1) != 0) v |= 0x80 >> b;
             return v;

@@ -67,6 +67,21 @@ class UnderlayTest {
     }
 
     @Test
+    void displayerFitsEveryLinePair() {
+        float[] t = ConverterTest.testTarget();
+        for (FliMode mode : new FliMode[]{FliMode.NUFLI, FliMode.MUFLI}) {
+            ConversionResult r = FliConverter.convert(t, ConverterTest.settings(mode, Dither.FLOYD_STEINBERG, true),
+                    FliConverter.Progress.NONE);
+            UnderlayFrame f = r.underlay.get(0);
+            for (int p = 1; p < UnderlayFrame.PAIRS; p++) assertTrue(de.flipperj.output.UnderlayPrg.fits(f, p), mode + " pair " + p);
+            byte[] prg = de.flipperj.output.PrgBuilder.build(r);
+            assertEquals(0x01, prg[0]);
+            assertEquals(0x08, prg[1]);
+            assertEquals(0x7A00, 0x0801 + prg.length - 2, mode + ": picture data up to $79FF");
+        }
+    }
+
+    @Test
     void convertsAllUnderlayModes() {
         float[] t = ConverterTest.testTarget();
         for (FliMode mode : new FliMode[]{FliMode.NUFLI, FliMode.MUFLI, FliMode.MUIFLI}) {

@@ -41,11 +41,12 @@ public final class PrgBuilder {
 
     private PrgBuilder() {}
 
-    /** NUFLI, MUFLI and MUIFLI have no displayer yet; they are written as editor files. */
-    public static boolean supports(FliMode mode) { return !mode.underlay; }
+    /** MUIFLI has no displayer yet; it is written as editor file only. */
+    public static boolean supports(FliMode mode) { return mode != FliMode.MUIFLI; }
 
     public static byte[] build(ConversionResult r) {
         if (!supports(r.mode)) throw new UnsupportedOperationException(r.mode + ": no displayer yet");
+        if (r.mode.underlay) return UnderlayPrg.build(r.underlay.get(0));
         FliMode mode = r.mode;
         Asm6502 a = new Asm6502(0x0801);
         // BASIC: 10 SYS2061

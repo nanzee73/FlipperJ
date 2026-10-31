@@ -45,7 +45,12 @@ program C64 (.prg) i/lub jako surowe dane. Każdą zmianę od razu widać w podg
 <p><b>Błąd FLI:</b> na prawdziwym C64 trzy lewe kolumny znaków (24 piksele) każdej linii FLI nie mogą pokazać kolorów
 obrazu. FlipperJ o tym wie i używa tam tylko koloru tła. Opcja <b>Pokaż błąd FLI</b> pokazuje te kolumny tak, jak
 wyświetla je C64.</p>
-<p><b>NUFLI, MUFLI, MUIFLI</b> są zapisywane jako pliki NUFLI Editora (.nuf), MUFLI Editora (.muf) i MUIFLI Editora (.mui) – podgląd pokazuje to, co daje odczyt tego pliku. Uruchamialny .prg z własnym programem wyświetlającym dla tych trybów jest jeszcze w przygotowaniu. MuleJ i FlipperJ potrafią ponownie otworzyć te pliki.</p>
+<p><b>NUFLI, MUFLI, MUIFLI</b> są zawsze zapisywane także jako pliki NUFLI Editora (.nuf), MUFLI Editora (.muf) i MUIFLI Editora (.mui), które MuleJ i FlipperJ potrafią ponownie otworzyć. NUFLI i MUFLI dostają dodatkowo uruchamialny .prg z własnym programem wyświetlającym FlipperJ; dla MUIFLI jeszcze go nie ma. Podgląd pokazuje dokładnie to, co pokazuje program wyświetlający. Jego ograniczenia, które konwerter już uwzględnia:</p>
+<ul>
+<li>na parę linii tyle zmian kolorów sprite’ów, na ile starcza czasu: zwykle 6, w niektórych parach 4 lub 5 (MUFLI: zmiana między hires a multicolor liczy się jako jeszcze jedna);</li>
+<li>w obszarze błędu FLI (NUFLI) komórki od linii 2 są jasnoszare; kolor dają tam tylko sprite’y;</li>
+<li>linie 198 i 199 zachowują kolory komórek linii 196 i 197.</li>
+</ul>
 
 <a name="input"></a><h2>Otwieranie obrazów</h2>
 <p>FlipperJ czyta wszystkie popularne formaty PC (PNG, JPEG, GIF, BMP, WebP, TIFF, PSD, TGA, PCX, …) oraz obrazy C64:

@@ -45,7 +45,12 @@ C64 program (.prg) and/or as raw data. Everything you change is shown at once in
 <p><b>The FLI bug:</b> on a real C64 the leftmost three character columns (24 pixels) of every FLI line cannot show
 the picture's colours. FlipperJ knows this and only uses the background colour there. With <b>Render FLI bug</b>
 you see these columns as the C64 shows them.</p>
-<p><b>NUFLI, MUFLI, MUIFLI</b> are written as files of the NUFLI Editor (.nuf), MUFLI Editor (.muf) and MUIFLI Editor (.mui) – the preview is what reading that file gives. A runnable .prg with FlipperJ's own displayer for these modes is still being developed. MuleJ and FlipperJ can open these files again.</p>
+<p><b>NUFLI, MUFLI, MUIFLI</b> are always written as files of the NUFLI Editor (.nuf), MUFLI Editor (.muf) and MUIFLI Editor (.mui), which MuleJ and FlipperJ can open again. NUFLI and MUFLI also get a runnable .prg with FlipperJ's own displayer; MUIFLI does not have one yet. The preview shows exactly what the displayer shows. Its limits, already taken into account by the converter:</p>
+<ul>
+<li>per line pair, as many sprite colour changes as there is time for: usually 6, in some line pairs 4 or 5 (MUFLI: a change between hires and multicolour counts as one more);</li>
+<li>in the FLI bug area (NUFLI) the cells are light grey from line 2 on; only the sprites give colour there;</li>
+<li>lines 198 and 199 keep the cell colours of lines 196 and 197.</li>
+</ul>
 
 <a name="input"></a><h2>Opening pictures</h2>
 <p>FlipperJ reads every common PC format (PNG, JPEG, GIF, BMP, WebP, TIFF, PSD, TGA, PCX, …) and C64 pictures:

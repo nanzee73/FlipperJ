@@ -31,7 +31,8 @@ public final class Cli {
 
                 Options:
                   --mode fli|afli|ifli|nufli|mufli|muifli   default: fli
-                                              (NUFLI/MUFLI/MUIFLI: written as editor file .nuf/.muf/.mui)
+                                              (NUFLI/MUFLI/MUIFLI: also written as editor file .nuf/.muf/.mui;
+                                               no .prg for MUIFLI yet)
                   --palette NAME|FILE         source palette (default: Pepto); built-in names:
                                               pepto, colodore, deekay, palette, community, ptoing,
                                               c64hq, ccs64, c64s, vice
@@ -127,7 +128,7 @@ public final class Cli {
             Files.write(out, PrgBuilder.build(r));
             System.out.println("Wrote " + out);
         }
-        if (raw || (prg && !PrgBuilder.supports(mode))) {
+        if (raw || mode.underlay) {
             Path dir = out.toAbsolutePath().getParent();
             String base = out.getFileName().toString().replaceFirst("\\.[^.]+$", "");
             for (Path p : RawExporter.export(r, dir, base)) System.out.println("Wrote " + p);

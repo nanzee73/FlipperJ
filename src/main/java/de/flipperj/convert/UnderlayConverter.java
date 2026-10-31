@@ -8,6 +8,7 @@ import de.c64gfx.format.C64Formats;
 import de.c64gfx.format.C64Picture;
 import de.c64gfx.swing.ImageAdjust;
 import de.flipperj.output.UnderlayFile;
+import de.flipperj.output.UnderlayPrg;
 
 import java.util.stream.IntStream;
 
@@ -33,11 +34,16 @@ public final class UnderlayConverter {
     /** Converts and writes the editor file; the preview is what reading that file gives. */
     static ConversionResult convert(float[] t320, ConvertSettings s, ColorMatcher m, FliConverter.Progress p) {
         byte[] file;
+        java.util.List<UnderlayFrame> frames;
         switch (s.mode()) {
-            case NUFLI -> file = UnderlayFile.build(convertFrame(t320, s, m, true, p, 0, 1).frame()).bytes();
-            case MUFLI -> file = UnderlayFile.build(convertFrame(t320, s, m, false, p, 0, 1).frame()).bytes();
+            case NUFLI, MUFLI -> {
+                UnderlayFrame f = convertFrame(t320, s, m, s.mode() == FliMode.NUFLI, p, 0, 1).frame();
+                frames = java.util.List.of(f);
+                file = UnderlayFile.build(f).bytes();
+            }
             default -> {
                 Out[] ab = convertMuifli(t320, s, m, s.sourcePalette(), p);
+                frames = java.util.List.of(ab[0].frame(), ab[1].frame());
                 file = UnderlayFile.muifli(UnderlayFile.build(ab[0].frame()).bytes(), UnderlayFile.build(ab[1].frame()).bytes());
             }
         }
@@ -45,7 +51,7 @@ public final class UnderlayConverter {
             C64Picture pic = C64Formats.read("picture." + s.mode().rawExtension, file);
             int[][] idx = pic.frame2() == null ? new int[][]{pic.frame1()} : new int[][]{pic.frame1(), pic.frame2()};
             p.update("Done", 1.0);
-            return new ConversionResult(s.mode(), file, idx, t320);
+            return new ConversionResult(s.mode(), file, frames, idx, t320);
         } catch (java.io.IOException e) {
             throw new IllegalStateException("Written " + s.mode() + " file cannot be read back: " + e.getMessage(), e);
         }
@@ -104,6 +110,7 @@ public final class UnderlayConverter {
             chooseStrips(f, et);
             if (!f.nufli) chooseMulticolour(f, et);
             else chooseBugSprites(f, et);
+            limitChanges(f, et);
             chooseCells(f, et, true);
         }
     }
@@ -112,11 +119,12 @@ public final class UnderlayConverter {
     private static void chooseCells(UnderlayFrame f, float[] et, boolean withSprites) {
         IntStream.range(0, 100 * 40).parallel().forEach(k -> {
             int r = k / 40, cx = k % 40;
-            int y0 = r * 2;
+            if (r > UnderlayFrame.LAST_CELL_ROW) return;         // lines 198/199 use the cells of 196/197
+            int y0 = r * 2, nl = r == UnderlayFrame.LAST_CELL_ROW ? 4 : 2;
             if (!f.nufli && cx < 3) { f.fg[k] = 0; f.bg[k] = 0; return; }
             if (fixedGrey(f, y0, cx)) { f.fg[k] = 15; f.bg[k] = 15; return; }
-            float[] under = new float[16];                   // best sprite colour error per pixel
-            for (int ly = 0; ly < 2; ly++)
+            float[] under = new float[32];                   // best sprite colour error per pixel
+            for (int ly = 0; ly < nl; ly++)
                 for (int px = 0; px < 8; px++) {
                     float u = Float.MAX_VALUE;
                     if (withSprites)
@@ -128,7 +136,7 @@ public final class UnderlayConverter {
             for (int a = 0; a < 16; a++)
                 for (int b = a; b < 16; b++) {
                     float c = 0;
-                    for (int ly = 0; ly < 2 && c < bestC; ly++)
+                    for (int ly = 0; ly < nl && c < bestC; ly++)
                         for (int px = 0; px < 8; px++) {
                             int x = cx * 8 + px, y = y0 + ly;
                             c += Math.min(Math.min(e(et, x, y, a), e(et, x, y, b)), under[ly * 8 + px]);
@@ -167,6 +175,54 @@ public final class UnderlayConverter {
             f.stripColour[st][p] = best;
             f.multicolour[st][p] = false;
         });
+    }
+
+    /** Error of strip st in pair p with the given sprite mode and colour (multicolour: 4-pixel units). */
+    private static float stripCost(UnderlayFrame f, float[] et, int st, int p, boolean mc, int colour) {
+        int x0 = 24 + (st - 1) * 48;
+        float sum = 0;
+        for (int y : pairLines(p)) {
+            if (!mc) {
+                for (int x = x0; x < x0 + 48; x++) sum += Math.min(cellError(f, et, x, y), e(et, x, y, colour));
+                continue;
+            }
+            for (int x = x0; x < x0 + 48; x += 4) {
+                float u = Float.MAX_VALUE;
+                for (int v : new int[]{-1, f.mc1, colour, f.mc3}) {
+                    float c = 0;
+                    for (int i = 0; i < 4; i++) {
+                        float ce = cellError(f, et, x + i, y);
+                        c += v < 0 ? ce : Math.min(e(et, x + i, y, f.fg[UnderlayFrame.cell(y, (x + i) >> 3)]), e(et, x + i, y, v));
+                    }
+                    u = Math.min(u, c);
+                }
+                sum += u;
+            }
+        }
+        return sum;
+    }
+
+    /**
+     * FlipperJ's displayer has only so many cycles per line pair for colour and multicolour changes
+     * ({@link UnderlayPrg#fits}): where they don't fit, the changes that help least keep the setting of the pair before.
+     */
+    private static void limitChanges(UnderlayFrame f, float[] et) {
+        for (int p = 1; p < UnderlayFrame.PAIRS; p++) {
+            while (!UnderlayPrg.fits(f, p)) {
+                int bestSt = -1;
+                float bestLoss = Float.MAX_VALUE;
+                for (int st = 1; st <= 6; st++) {
+                    boolean mcNow = f.multicolour[st][p], mcBefore = f.multicolour[st][p - 1];
+                    int now = f.stripColour[st][p], before = f.stripColour[st][p - 1];
+                    if (now == before && mcNow == mcBefore) continue;
+                    float loss = stripCost(f, et, st, p, mcBefore, before) - stripCost(f, et, st, p, mcNow, now);
+                    if (loss < bestLoss) { bestLoss = loss; bestSt = st; }
+                }
+                if (bestSt < 0) throw new IllegalStateException("Line pair " + p + " does not fit the displayer");
+                f.stripColour[bestSt][p] = f.stripColour[bestSt][p - 1];
+                f.multicolour[bestSt][p] = f.multicolour[bestSt][p - 1];
+            }
+        }
     }
 
     /** MUFLI: the two shared multicolour colours, then per strip and pair whether multicolour is better. */
