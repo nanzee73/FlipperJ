@@ -93,8 +93,14 @@ tasks.register<Exec>("jpackage") {
     dependsOn("installDist")
 
     val appVersion = project.version.toString()
-    // macOS installers refuse versions starting with 0 – the .dmg gets 1.x.y instead of 0.x.y (only inside the installer)
-    val installerVersion = if (os.isMacOsX && appVersion.startsWith("0")) "1" + appVersion.substring(1) else appVersion
+    // macOS installers take only 1-3 numbers and refuse a first 0: the .dmg gets 1.x.y instead of 0.x.y and
+    // drops a fourth number (0.7.3.666 -> 1.7.3; only inside the installer, file names keep the real version)
+    val installerVersion = if (!os.isMacOsX) appVersion else {
+        val parts = appVersion.split('.', '-').filter { it.isNotEmpty() && it.all(Char::isDigit) }.take(3).toMutableList()
+        if (parts.isEmpty()) parts.add("1")
+        if (parts[0] == "0") parts[0] = "1"
+        parts.joinToString(".")
+    }
     val input = layout.buildDirectory.dir("install/flipperj/lib").get().asFile
     val dest = layout.buildDirectory.dir("jpackage").get().asFile
     val type = (findProperty("installerType") as String?) ?: when {
